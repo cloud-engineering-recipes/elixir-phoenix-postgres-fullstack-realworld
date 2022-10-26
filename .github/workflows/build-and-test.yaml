@@ -17,5 +17,7 @@ jobs:
           otp-version: 24
           elixir-version: 1.12
       - run: mix deps.get
+      - run: mix credo --strict
+      - run: mix format --check-formatted
       - name: Test
         run: ./test.sh
