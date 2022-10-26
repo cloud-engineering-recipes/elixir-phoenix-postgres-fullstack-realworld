@@ -159,11 +159,11 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
-.env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+# .env
+# .env.development.local
+# .env.test.local
+# .env.production.local
+# .env.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -329,3 +329,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/elixir,phoenix,visualstudiocode,node,linux,windows,macos,terraform,erlang
+
+# Local postgres data
+postgres-data
