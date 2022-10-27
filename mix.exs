@@ -63,8 +63,9 @@ defmodule Realworld.MixProject do
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.deploy": ["esbuild default --minify", "phx.digest"]
+      test: ["cmd docker compose up database -d", "ecto.create --quiet", "ecto.migrate --quiet", "test", "cmd docker compose down"],
+      "assets.deploy": ["esbuild default --minify", "phx.digest"],
+      "gen.dockerfile": ["deps.get --only prod", "compile", "assets.deploy", "phx.gen.release --docker"]
     ]
   end
 end

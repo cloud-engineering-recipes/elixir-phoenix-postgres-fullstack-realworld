@@ -10,6 +10,8 @@ defmodule Realworld.Application do
     children = [
       # Start the Ecto repository
       Realworld.Repo,
+      # Runs migrations
+      Realworld.Repo.Migrator,
       # Start the Telemetry supervisor
       RealworldWeb.Telemetry,
       # Start the PubSub system
