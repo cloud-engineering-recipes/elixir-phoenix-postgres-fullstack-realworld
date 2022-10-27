@@ -1,4 +1,4 @@
-defmodule Realworld.DataCase do
+defmodule RealWorld.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -10,7 +10,7 @@ defmodule Realworld.DataCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use Realworld.DataCase, async: true`, although
+  by setting `use RealWorld.DataCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -19,17 +19,17 @@ defmodule Realworld.DataCase do
 
   using do
     quote do
-      alias Realworld.Repo
+      alias RealWorld.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import Realworld.DataCase
+      import RealWorld.DataCase
     end
   end
 
   setup tags do
-    Realworld.DataCase.setup_sandbox(tags)
+    RealWorld.DataCase.setup_sandbox(tags)
     :ok
   end
 
@@ -37,7 +37,7 @@ defmodule Realworld.DataCase do
   Sets up the sandbox based on the test tags.
   """
   def setup_sandbox(tags) do
-    pid = Sandbox.start_owner!(Realworld.Repo, shared: not tags[:async])
+    pid = Sandbox.start_owner!(RealWorld.Repo, shared: not tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
   end
 

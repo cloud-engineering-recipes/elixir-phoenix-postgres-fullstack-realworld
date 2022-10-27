@@ -8,13 +8,13 @@
 import Config
 
 config :realworld,
-  ecto_repos: [Realworld.Repo]
+  ecto_repos: [RealWorld.Repo]
 
 # Configures the endpoint
-config :realworld, RealworldWeb.Endpoint,
+config :realworld, RealWorldWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: RealworldWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: Realworld.PubSub,
+  render_errors: [view: RealWorldWeb.ErrorView, accepts: ~w(html json), layout: false],
+  pubsub_server: RealWorld.PubSub,
   live_view: [signing_salt: "OHFrvsmC"]
 
 # Configures the mailer
@@ -24,7 +24,7 @@ config :realworld, RealworldWeb.Endpoint,
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
-config :realworld, Realworld.Mailer, adapter: Swoosh.Adapters.Local
+config :realworld, RealWorld.Mailer, adapter: Swoosh.Adapters.Local
 
 # Swoosh API client is needed for adapters other than SMTP.
 config :swoosh, :api_client, false
@@ -46,6 +46,15 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+# Guardian. See https://github.com/ueberauth/guardian#installation
+config :realworld, RealWorldWeb.Guardian,
+  issuer: System.get_env("PHX_HOST") || "example.com",
+  secret_key:
+    System.get_env("JWT_SECRET_KEY") ||
+      "OSS2HCCpgbXYDk/yK3TqzjaQShYSWUKvvT2wDtmGVAVLvR9An35QG7dcMkV5pRfi",
+  verify_issuer: true,
+  ttl: {String.to_integer(System.get_env("JWT_VALID_FOR_HOURS") || "1"), :hours}
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

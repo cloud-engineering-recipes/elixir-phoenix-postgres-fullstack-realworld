@@ -1,3 +1,3 @@
-defmodule RealworldWeb.PageView do
-  use RealworldWeb, :view
+defmodule RealWorldWeb.PageView do
+  use RealWorldWeb, :view
 end

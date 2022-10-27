@@ -1,4 +1,4 @@
-defmodule Realworld.Application do
+defmodule RealWorld.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -9,22 +9,22 @@ defmodule Realworld.Application do
   def start(_type, _args) do
     children = [
       # Start the Ecto repository
-      Realworld.Repo,
+      RealWorld.Repo,
       # Runs migrations
-      Realworld.Repo.Migrator,
+      RealWorld.Repo.Migrator,
       # Start the Telemetry supervisor
-      RealworldWeb.Telemetry,
+      RealWorldWeb.Telemetry,
       # Start the PubSub system
-      {Phoenix.PubSub, name: Realworld.PubSub},
+      {Phoenix.PubSub, name: RealWorld.PubSub},
       # Start the Endpoint (http/https)
-      RealworldWeb.Endpoint
-      # Start a worker by calling: Realworld.Worker.start_link(arg)
-      # {Realworld.Worker, arg}
+      RealWorldWeb.Endpoint
+      # Start a worker by calling: RealWorld.Worker.start_link(arg)
+      # {RealWorld.Worker, arg}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Realworld.Supervisor]
+    opts = [strategy: :one_for_one, name: RealWorld.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
@@ -32,7 +32,7 @@ defmodule Realworld.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    RealworldWeb.Endpoint.config_change(changed, removed)
+    RealWorldWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end

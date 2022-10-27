@@ -1,4 +1,4 @@
-defmodule Realworld.Repo.Migrations.AddUsersTable do
+defmodule RealWorld.Repo.Migrations.AddUsersTable do
   use Ecto.Migration
 
   def change do

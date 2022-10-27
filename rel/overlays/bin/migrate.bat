@@ -1,1 +1,1 @@
-call "%~dp0\realworld" eval Realworld.Release.migrate
+call "%~dp0\realworld" eval RealWorld.Release.migrate

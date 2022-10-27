@@ -1,4 +1,4 @@
-defmodule Realworld.Repo.Migrator do
+defmodule RealWorld.Repo.Migrator do
   @moduledoc """
   Runs migrations inside of a release.
   """
@@ -17,6 +17,6 @@ defmodule Realworld.Repo.Migrator do
   def migrate! do
     path = Application.app_dir(:realworld, "priv/repo/migrations")
 
-    Ecto.Migrator.run(Realworld.Repo, path, :up, all: true)
+    Ecto.Migrator.run(RealWorld.Repo, path, :up, all: true)
   end
 end

@@ -1,4 +1,4 @@
-defmodule RealworldWeb.ConnCase do
+defmodule RealWorldWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,7 +11,7 @@ defmodule RealworldWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use RealworldWeb.ConnCase, async: true`, although
+  by setting `use RealWorldWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
@@ -22,17 +22,17 @@ defmodule RealworldWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
-      import RealworldWeb.ConnCase
+      import RealWorldWeb.ConnCase
 
-      alias RealworldWeb.Router.Helpers, as: Routes
+      alias RealWorldWeb.Router.Helpers, as: Routes
 
       # The default endpoint for testing
-      @endpoint RealworldWeb.Endpoint
+      @endpoint RealWorldWeb.Endpoint
     end
   end
 
   setup tags do
-    Realworld.DataCase.setup_sandbox(tags)
+    RealWorld.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

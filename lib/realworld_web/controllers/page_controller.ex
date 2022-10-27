@@ -1,5 +1,5 @@
-defmodule RealworldWeb.PageController do
-  use RealworldWeb, :controller
+defmodule RealWorldWeb.PageController do
+  use RealWorldWeb, :controller
 
   def index(conn, _params) do
     render(conn, "index.html")
