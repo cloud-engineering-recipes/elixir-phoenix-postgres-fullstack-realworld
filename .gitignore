@@ -332,3 +332,7 @@ $RECYCLE.BIN/
 
 # Local postgres data
 postgres-data
+
+# Docker-related generated files
+Dockerfile
+.dockerignore
