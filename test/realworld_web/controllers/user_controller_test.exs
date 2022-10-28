@@ -1,81 +1,50 @@
-defmodule RealworldWeb.ArticleControllerTest do
-  use RealworldWeb.ConnCase
-
-  import Realworld.NewsFixtures
-
-  alias Realworld.News.Article
-
-  @create_attrs %{
-    body: "some body",
-    title: "some title"
-  }
-  @update_attrs %{
-    body: "some updated body",
-    title: "some updated title"
-  }
-  @invalid_attrs %{body: nil, title: nil}
+defmodule RealWorldWeb.ArticleControllerTest do
+  use RealWorldWeb.ConnCase
 
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
-  describe "create user" do
+  describe "register user" do
     test "renders user when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.user_path(conn, :create), article: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+      create_attrs = %{
+        email: Faker.Internet.email(),
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters())
+      }
 
-      conn = get(conn, Routes.article_path(conn, :show, id))
+      register_user_conn =
+        conn
+        |> post(Routes.user_path(conn, :register_user), user: create_attrs)
 
-      assert %{
-               "id" => ^id,
-               "body" => "some body",
-               "title" => "some title"
-             } = json_response(conn, 200)["data"]
+      assert %{"user" => user} = json_response(register_user_conn, 201)
+      assert Map.get(user, "email") == create_attrs.email
+      assert Map.get(user, "username") == create_attrs.username
+      assert Map.get(user, "token") != nil
+      assert Map.get(user, "bio") == nil
+      assert Map.get(user, "image") == nil
+
+      get_current_user_conn =
+        conn
+        |> put_req_header("authorization", "Bearer #{Map.get(user, "token")}")
+        |> get(Routes.user_path(conn, :get_current_user))
+
+      assert %{"user" => found_user} = json_response(get_current_user_conn, 200)
+      assert user == found_user
     end
 
     test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.article_path(conn, :create), article: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      invalid_attrs = %{
+        email: "invalid",
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters(1..7))
+      }
+
+      register_user_conn =
+        conn
+        |> post(Routes.user_path(conn, :register_user), user: invalid_attrs)
+
+      assert length(json_response(register_user_conn, 422)["errors"]["body"]) > 0
     end
-  end
-
-  describe "update article" do
-    setup [:create_article]
-
-    test "renders article when data is valid", %{conn: conn, article: %Article{id: id} = article} do
-      conn = put(conn, Routes.article_path(conn, :update, article), article: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.article_path(conn, :show, id))
-
-      assert %{
-               "id" => ^id,
-               "body" => "some updated body",
-               "title" => "some updated title"
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn, article: article} do
-      conn = put(conn, Routes.article_path(conn, :update, article), article: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "delete article" do
-    setup [:create_article]
-
-    test "deletes chosen article", %{conn: conn, article: article} do
-      conn = delete(conn, Routes.article_path(conn, :delete, article))
-      assert response(conn, 204)
-
-      assert_error_sent 404, fn ->
-        get(conn, Routes.article_path(conn, :show, article))
-      end
-    end
-  end
-
-  defp create_article(_) do
-    article = article_fixture()
-    %{article: article}
   end
 end

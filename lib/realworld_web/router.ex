@@ -1,4 +1,6 @@
 defmodule RealWorldWeb.Router do
+  @moduledoc false
+
   use RealWorldWeb, :router
 
   pipeline :browser do
@@ -14,6 +16,10 @@ defmodule RealWorldWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :ensure_authenticated do
+    plug RealWorldWeb.AuthAccessPipeline
+  end
+
   scope "/", RealWorldWeb do
     pipe_through :browser
 
@@ -25,6 +31,11 @@ defmodule RealWorldWeb.Router do
     pipe_through :api
 
     post "/users", UserController, :register_user
+  end
+
+  scope "/api", RealWorldWeb do
+    pipe_through([:api, :ensure_authenticated])
+
     get "/user", UserController, :get_current_user
   end
 

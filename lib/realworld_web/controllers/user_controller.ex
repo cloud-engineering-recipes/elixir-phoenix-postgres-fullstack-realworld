@@ -1,8 +1,8 @@
 defmodule RealWorldWeb.UserController do
   use RealWorldWeb, :controller
+  require Logger
 
   alias RealWorld.{Users, Users.User}
-  alias RealWorldWeb.Guardian
 
   action_fallback(RealWorldWeb.FallbackController)
 
@@ -12,7 +12,7 @@ defmodule RealWorldWeb.UserController do
       ) do
     with {:ok, %User{} = user} <-
            Users.create_user(%{email: email, username: username, password: password}) do
-      {:ok, token, _claims} = user |> Guardian.encode_and_sign(%{})
+      {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
       conn
       |> put_status(:created)
@@ -21,6 +21,10 @@ defmodule RealWorldWeb.UserController do
     end
   end
 
-  def get_current_user(_conn, _params) do
+  def get_current_user(conn, _params) do
+    user = conn.private.guardian_default_resource
+    token = conn.private.guardian_default_token
+
+    render(conn, "show.json", %{user: user, token: token})
   end
 end
