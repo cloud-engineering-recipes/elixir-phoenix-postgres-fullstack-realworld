@@ -27,9 +27,10 @@ defmodule RealWorld.UsersTest do
       found_user = Users.get_user_by_id!(user.id)
 
       assert user.id == found_user.id
+      assert user.password_hash == found_user.password_hash
+      assert found_user.password == nil
       assert user.inserted_at == found_user.inserted_at
       assert user.updated_at == found_user.updated_at
-      assert user.password_hash == found_user.password_hash
     end
 
     test "create_user/1 with invalid email returns an error changeset" do
