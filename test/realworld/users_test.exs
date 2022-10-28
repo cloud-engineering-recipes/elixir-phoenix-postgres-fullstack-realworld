@@ -43,7 +43,27 @@ defmodule RealWorld.UsersTest do
       assert "has invalid format" in errors_on(changeset, :email)
     end
 
-    test "create_user/1 with password with length less than 8 returns an error changeset" do
+    test "create_user/1 with taken email returns an error changeset", %{user: user} do
+      username = Faker.Internet.user_name()
+      password = List.to_string(Faker.Lorem.characters())
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.create_user(%{email: user.email, username: username, password: password})
+
+      assert "has already been taken" in errors_on(changeset, :email)
+    end
+
+    test "create_user/1 with taken username returns an error changeset", %{user: user} do
+      email = Faker.Internet.email()
+      password = List.to_string(Faker.Lorem.characters())
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.create_user(%{email: email, username: user.username, password: password})
+
+      assert "has already been taken" in errors_on(changeset, :username)
+    end
+
+    test "create_user/1 with password with less than 8 characters returns an error changeset" do
       email = Faker.Internet.email()
       username = Faker.Internet.user_name()
       password = "Pass@12"
