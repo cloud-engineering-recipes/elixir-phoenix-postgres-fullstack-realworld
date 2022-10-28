@@ -36,6 +36,8 @@ defmodule RealWorld.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:ecto_sql, "~> 3.6"},
       {:esbuild, "~> 0.4", runtime: Mix.env() == :dev},
+      {:ex_machina, "~> 2.7.0", only: :test},
+      {:faker, "~> 0.17", only: :test},
       {:floki, ">= 0.30.0", only: :test},
       {:gettext, "~> 0.18"},
       {:guardian, "~> 2.0"},
@@ -73,7 +75,7 @@ defmodule RealWorld.MixProject do
         "assets.deploy",
         "phx.gen.release --docker"
       ],
-      "up.database": ["cmd docker compose up database -d"],
+      "up.database": ["cmd docker compose up database -d --wait"],
       up: ["gen.dockerfile", "cmd docker compose up --build"],
       down: ["cmd docker compose down"]
     ]

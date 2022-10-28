@@ -8,7 +8,7 @@ defmodule RealWorldWeb.UserController do
         conn,
         %{"user" => %{"email" => email, "username" => username, "password" => password}}
       ) do
-    case Users.create_user(email, username, password) do
+    case Users.create_user(%{email: email, username: username, password: password}) do
       {:ok, user} ->
         {:ok, token, _claims} = user |> Guardian.encode_and_sign(%{})
 

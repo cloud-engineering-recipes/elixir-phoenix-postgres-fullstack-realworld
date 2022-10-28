@@ -6,7 +6,7 @@ defmodule RealWorld.Users do
   alias RealWorld.Repo
   alias RealWorld.Users.User
 
-  def create_user(email, username, password) do
+  def create_user(%{email: email, username: username, password: password}) do
     %User{}
     |> User.changeset(%{
       email: email,
@@ -16,7 +16,7 @@ defmodule RealWorld.Users do
     |> Repo.insert()
   end
 
-  def get_user_by_id(id) do
+  def get_user_by_id!(id) do
     User
     |> Repo.get!(id)
   end

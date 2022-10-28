@@ -16,7 +16,7 @@ defmodule RealWorldWeb.Guardian do
   end
 
   def resource_from_claims(%{"sub" => user_id}) do
-    {:ok, Users.get_user_by_id(user_id)}
+    {:ok, Users.get_user_by_id!(user_id)}
   end
 
   def resource_from_claims(_claims) do
