@@ -6,13 +6,10 @@ defmodule RealWorld.Users do
   alias RealWorld.Repo
   alias RealWorld.Users.User
 
-  def create_user(%{email: email, username: username, password: password}) do
+  def create_user(attrs = %{email: _email, username: _username, password: _password}) do
     %User{}
-    |> User.changeset(%{
-      email: email,
-      username: username,
-      password_hash: Argon2.hash_pwd_salt(password)
-    })
+    |> User.creation_changeset(attrs)
+    |> User.changeset(attrs)
     |> Repo.insert()
   end
 
