@@ -30,8 +30,7 @@ defmodule RealWorldWeb.UserController do
         user = Users.get_user_by_email(email)
         {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
-        conn
-        |> render("show.json", %{user: user, token: token})
+        render(conn, "show.json", %{user: user, token: token})
 
       _ ->
         {:error, :unauthorized}
@@ -43,5 +42,14 @@ defmodule RealWorldWeb.UserController do
     token = conn.private.guardian_default_token
 
     render(conn, "show.json", %{user: user, token: token})
+  end
+
+  def update_user(conn, %{"user" => user_params}) do
+    user = conn.private.guardian_default_resource
+    token = conn.private.guardian_default_token
+
+    with {:ok, %User{} = user} <- Users.update_user(user.id, user_params) do
+      render(conn, "show.json", %{user: user, token: token})
+    end
   end
 end

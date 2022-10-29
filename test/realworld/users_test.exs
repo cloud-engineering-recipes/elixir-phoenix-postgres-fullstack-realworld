@@ -9,18 +9,19 @@ defmodule RealWorld.UsersTest do
     {:ok, user: insert(:user)}
   end
 
-  describe "users" do
-    test "create_user/1 with valid data creates an user" do
-      email = Faker.Internet.email()
-      username = Faker.Internet.user_name()
-      password = List.to_string(Faker.Lorem.characters())
+  describe "create_user/1" do
+    test "creates an user with valid data" do
+      create_user_attrs = %{
+        email: Faker.Internet.email(),
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters())
+      }
 
-      assert {:ok, %User{} = user} =
-               Users.create_user(%{email: email, username: username, password: password})
+      assert {:ok, %User{} = user} = Users.create_user(create_user_attrs)
 
-      assert user.email == email
-      assert user.username == username
-      assert Argon2.verify_pass(password, user.password_hash)
+      assert user.email == create_user_attrs.email
+      assert user.username == create_user_attrs.username
+      assert Argon2.verify_pass(create_user_attrs.password, user.password_hash)
       assert user.bio == nil
       assert user.image == nil
 
@@ -33,73 +34,150 @@ defmodule RealWorld.UsersTest do
       end
     end
 
-    test "create_user/1 with invalid email returns an error changeset" do
-      email = "invalid"
-      username = Faker.Internet.user_name()
-      password = List.to_string(Faker.Lorem.characters())
+    test "returns an error changeset with invalid email" do
+      create_user_attrs = %{
+        email: "invalid",
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters())
+      }
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Users.create_user(%{email: email, username: username, password: password})
+      assert {:error, %Ecto.Changeset{} = changeset} = Users.create_user(create_user_attrs)
 
       assert "has invalid format" in errors_on(changeset, :email)
     end
 
-    test "create_user/1 with taken email returns an error changeset", %{user: user} do
-      username = Faker.Internet.user_name()
-      password = List.to_string(Faker.Lorem.characters())
+    test "returns an error changeset with taken email", %{user: existing_user} do
+      create_user_attrs = %{
+        email: existing_user.email,
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters())
+      }
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Users.create_user(%{email: user.email, username: username, password: password})
+      assert {:error, %Ecto.Changeset{} = changeset} = Users.create_user(create_user_attrs)
 
       assert "has already been taken" in errors_on(changeset, :email)
     end
 
-    test "create_user/1 with taken username returns an error changeset", %{user: user} do
-      email = Faker.Internet.email()
-      password = List.to_string(Faker.Lorem.characters())
+    test "returns an error changeset with taken username", %{user: existing_user} do
+      create_user_attrs = %{
+        email: Faker.Internet.email(),
+        username: existing_user.username,
+        password: List.to_string(Faker.Lorem.characters())
+      }
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Users.create_user(%{email: email, username: user.username, password: password})
+      assert {:error, %Ecto.Changeset{} = changeset} = Users.create_user(create_user_attrs)
 
       assert "has already been taken" in errors_on(changeset, :username)
     end
 
-    test "create_user/1 with password with less than 8 characters returns an error changeset" do
-      email = Faker.Internet.email()
-      username = Faker.Internet.user_name()
-      password = "Pass@12"
+    test "returns an error changeset with password with less than 8 characters" do
+      create_user_attrs = %{
+        email: Faker.Internet.email(),
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters(1..7))
+      }
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Users.create_user(%{email: email, username: username, password: password})
+      assert {:error, %Ecto.Changeset{} = changeset} = Users.create_user(create_user_attrs)
 
       assert "should be at least 8 character(s)" in errors_on(changeset, :password)
     end
+  end
 
-    test "get_user_by_id/1 returns the user with given id",
+  describe "get_user_by_id/1" do
+    test "returns the user with given id",
          %{user: user} do
       with {%User{} = found_user} <- Users.get_user_by_id(user.id) do
         assert found_user == user
       end
     end
 
-    test "get_user_by_id/1 when user is not found returns nil" do
+    test "returns nil when user is not found" do
       user_id = Faker.UUID.v4()
       assert Users.get_user_by_id(user_id) == nil
     end
+  end
 
-    test "verify_password_by_email/2 returns true when user password matches" do
-      email = Faker.Internet.email()
-      username = Faker.Internet.user_name()
-      password = List.to_string(Faker.Lorem.characters())
+  describe "update_user/2" do
+    test "returns user with valid data", %{
+      user: user
+    } do
+      update_user_attrs = %{
+        email: Faker.Internet.email(),
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters()),
+        bio: Faker.Lorem.paragraph(),
+        image: Faker.Internet.url()
+      }
 
-      assert {:ok, %User{} = user} =
-               Users.create_user(%{email: email, username: username, password: password})
+      assert {:ok, updated_user} = Users.update_user(user.id, update_user_attrs)
+      assert updated_user.id == user.id
+      assert updated_user.email == update_user_attrs.email
+      assert Argon2.verify_pass(update_user_attrs.password, updated_user.password_hash)
+      assert updated_user.bio == update_user_attrs.bio
+      assert updated_user.image == update_user_attrs.image
 
-      assert {:ok, password_matches} = Users.verify_password_by_email(user.email, password)
+      with {%User{} = found_user} <- Users.get_user_by_id(updated_user.id) do
+        assert updated_user == found_user
+      end
+    end
+
+    test "returns an error changeset with taken email", %{user: existing_user} do
+      user = insert(:user)
+
+      update_user_attrs = %{
+        email: existing_user.email
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.update_user(user.id, update_user_attrs)
+
+      assert "has already been taken" in errors_on(changeset, :email)
+    end
+
+    test "returns an error changeset with taken username", %{user: existing_user} do
+      user = insert(:user)
+
+      update_user_attrs = %{
+        username: existing_user.username
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.update_user(user.id, update_user_attrs)
+
+      assert "has already been taken" in errors_on(changeset, :username)
+    end
+
+    test "returns an error changeset with password with less than 8 characters", %{
+      user: user
+    } do
+      update_user_attrs = %{
+        password: List.to_string(Faker.Lorem.characters(1..7))
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Users.update_user(user.id, update_user_attrs)
+
+      assert "should be at least 8 character(s)" in errors_on(changeset, :password)
+    end
+  end
+
+  describe "verify_password_by_email/2" do
+    test " returns true when user password matches" do
+      create_user_attrs = %{
+        email: Faker.Internet.email(),
+        username: Faker.Internet.user_name(),
+        password: List.to_string(Faker.Lorem.characters())
+      }
+
+      assert {:ok, %User{} = user} = Users.create_user(create_user_attrs)
+
+      assert {:ok, password_matches} =
+               Users.verify_password_by_email(user.email, create_user_attrs.password)
+
       assert password_matches
     end
 
-    test "verify_password_by_email/2 returns false when user password doesn't match", %{
+    test "returns false when user password doesn't match", %{
       user: user
     } do
       password = List.to_string(Faker.Lorem.characters())
@@ -108,7 +186,7 @@ defmodule RealWorld.UsersTest do
       assert !password_matches
     end
 
-    test "verify_password_by_email/2 returns error when user is not found" do
+    test "returns error when user is not found" do
       email = Faker.Internet.email()
       password = List.to_string(Faker.Lorem.characters())
 

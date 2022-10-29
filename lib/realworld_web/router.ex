@@ -38,6 +38,7 @@ defmodule RealWorldWeb.Router do
     pipe_through([:api, :ensure_authenticated])
 
     get "/user", UserController, :get_current_user
+    put "/user", UserController, :update_user
   end
 
   # Enables LiveDashboard only for development
