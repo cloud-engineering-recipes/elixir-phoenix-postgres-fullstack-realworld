@@ -24,13 +24,13 @@ defmodule RealWorld.UsersTest do
       assert user.bio == nil
       assert user.image == nil
 
-      found_user = Users.get_user_by_id!(user.id)
-
-      assert user.id == found_user.id
-      assert user.password_hash == found_user.password_hash
-      assert found_user.password == nil
-      assert user.inserted_at == found_user.inserted_at
-      assert user.updated_at == found_user.updated_at
+      with {%User{} = found_user} <- Users.get_user_by_id(user.id) do
+        assert user.id == found_user.id
+        assert user.password_hash == found_user.password_hash
+        assert found_user.password == nil
+        assert user.inserted_at == found_user.inserted_at
+        assert user.updated_at == found_user.updated_at
+      end
     end
 
     test "create_user/1 with invalid email returns an error changeset" do
@@ -75,11 +75,16 @@ defmodule RealWorld.UsersTest do
       assert "should be at least 8 character(s)" in errors_on(changeset, :password)
     end
 
-    test "get_user_by_id!/1 returns the user with given id",
+    test "get_user_by_id/1 returns the user with given id",
          %{user: user} do
-      found_user = Users.get_user_by_id!(user.id)
+      with {%User{} = found_user} <- Users.get_user_by_id(user.id) do
+        assert found_user == user
+      end
+    end
 
-      assert found_user == user
+    test "get_user_by_id/1 when user is not found returns nil" do
+      user_id = Faker.UUID.v4()
+      assert Users.get_user_by_id(user_id) == nil
     end
   end
 end

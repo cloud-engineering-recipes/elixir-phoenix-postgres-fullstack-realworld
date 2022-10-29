@@ -16,7 +16,10 @@ defmodule RealWorldWeb.Guardian do
   end
 
   def resource_from_claims(%{"sub" => user_id}) do
-    {:ok, Users.get_user_by_id!(user_id)}
+    case Users.get_user_by_id(user_id) do
+      nil -> {:error, "User not found"}
+      user -> {:ok, user}
+    end
   end
 
   def resource_from_claims(_claims) do

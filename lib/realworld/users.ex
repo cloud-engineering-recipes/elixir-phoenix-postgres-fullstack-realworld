@@ -13,8 +13,8 @@ defmodule RealWorld.Users do
     |> Repo.insert()
   end
 
-  def get_user_by_id!(id) do
+  def get_user_by_id(id) do
     User
-    |> Repo.get!(id)
+    |> Repo.get(id)
   end
 end
