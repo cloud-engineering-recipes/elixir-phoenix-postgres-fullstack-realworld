@@ -1,11 +1,13 @@
-defmodule RealworldWeb.Router do
-  use RealworldWeb, :router
+defmodule RealWorldWeb.Router do
+  @moduledoc false
+
+  use RealWorldWeb, :router
 
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, {RealworldWeb.LayoutView, :root}
+    plug :put_root_layout, {RealWorldWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -14,16 +16,28 @@ defmodule RealworldWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", RealworldWeb do
+  pipeline :ensure_authenticated do
+    plug RealWorldWeb.AuthAccessPipeline
+  end
+
+  scope "/", RealWorldWeb do
     pipe_through :browser
 
     get "/", PageController, :index
   end
 
   # Other scopes may use custom stacks.
-  # scope "/api", RealworldWeb do
-  #   pipe_through :api
-  # end
+  scope "/api", RealWorldWeb do
+    pipe_through :api
+
+    post "/users", UserController, :register_user
+  end
+
+  scope "/api", RealWorldWeb do
+    pipe_through([:api, :ensure_authenticated])
+
+    get "/user", UserController, :get_current_user
+  end
 
   # Enables LiveDashboard only for development
   #
@@ -38,7 +52,7 @@ defmodule RealworldWeb.Router do
     scope "/" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: RealworldWeb.Telemetry
+      live_dashboard "/dashboard", metrics: RealWorldWeb.Telemetry
     end
   end
 

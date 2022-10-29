@@ -1,4 +1,4 @@
-defmodule RealworldWeb.Endpoint do
+defmodule RealWorldWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :realworld
 
   # The session will be stored in the cookie and signed,
@@ -46,5 +46,5 @@ defmodule RealworldWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
-  plug RealworldWeb.Router
+  plug RealWorldWeb.Router
 end

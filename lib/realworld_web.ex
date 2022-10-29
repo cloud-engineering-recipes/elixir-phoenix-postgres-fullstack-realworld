@@ -1,12 +1,12 @@
-defmodule RealworldWeb do
+defmodule RealWorldWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, views, channels and so on.
 
   This can be used in your application as:
 
-      use RealworldWeb, :controller
-      use RealworldWeb, :view
+      use RealWorldWeb, :controller
+      use RealWorldWeb, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -19,11 +19,11 @@ defmodule RealworldWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: RealworldWeb
+      use Phoenix.Controller, namespace: RealWorldWeb
 
       import Plug.Conn
-      import RealworldWeb.Gettext
-      alias RealworldWeb.Router.Helpers, as: Routes
+      import RealWorldWeb.Gettext
+      alias RealWorldWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -31,7 +31,7 @@ defmodule RealworldWeb do
     quote do
       use Phoenix.View,
         root: "lib/realworld_web/templates",
-        namespace: RealworldWeb
+        namespace: RealWorldWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller,
@@ -45,7 +45,7 @@ defmodule RealworldWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {RealworldWeb.LayoutView, "live.html"}
+        layout: {RealWorldWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
     end
@@ -80,7 +80,7 @@ defmodule RealworldWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import RealworldWeb.Gettext
+      import RealWorldWeb.Gettext
     end
   end
 
@@ -95,9 +95,9 @@ defmodule RealworldWeb do
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
-      import RealworldWeb.ErrorHelpers
-      import RealworldWeb.Gettext
-      alias RealworldWeb.Router.Helpers, as: Routes
+      import RealWorldWeb.ErrorHelpers
+      import RealWorldWeb.Gettext
+      alias RealWorldWeb.Router.Helpers, as: Routes
     end
   end
 

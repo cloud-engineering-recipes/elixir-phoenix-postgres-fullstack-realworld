@@ -1,3 +1,3 @@
-defmodule RealworldWeb.PageViewTest do
-  use RealworldWeb.ConnCase, async: true
+defmodule RealWorldWeb.PageViewTest do
+  use RealWorldWeb.ConnCase, async: true
 end

@@ -1,5 +1,5 @@
-defmodule RealworldWeb.ErrorView do
-  use RealworldWeb, :view
+defmodule RealWorldWeb.ErrorView do
+  use RealWorldWeb, :view
 
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.
