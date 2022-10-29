@@ -10,7 +10,7 @@ defmodule RealWorld.Repo.Migrations.AddUsersTable do
       add :bio, :text
       add :image, :string
 
-      timestamps()
+      timestamps(type: :utc_datetime)
     end
 
     create unique_index("users", [:email])

@@ -25,7 +25,7 @@ defmodule RealWorld.UsersTest do
       assert user.bio == nil
       assert user.image == nil
 
-      with {%User{} = found_user} <- Users.get_user_by_id(user.id) do
+      with {:ok, %User{} = found_user} <- Users.get_user_by_id(user.id) do
         assert user.id == found_user.id
         assert user.password_hash == found_user.password_hash
         assert found_user.password == nil
@@ -86,14 +86,42 @@ defmodule RealWorld.UsersTest do
   describe "get_user_by_id/1" do
     test "returns the user with given id",
          %{user: user} do
-      with {%User{} = found_user} <- Users.get_user_by_id(user.id) do
-        assert found_user == user
+      with {:ok, %User{} = found_user} <- Users.get_user_by_id(user.id) do
+        assert found_user == %{user | password: nil}
       end
     end
 
-    test "returns nil when user is not found" do
+    test "returns not_found when user is not found" do
       user_id = Faker.UUID.v4()
-      assert Users.get_user_by_id(user_id) == nil
+      assert {:error, :not_found} = Users.get_user_by_id(user_id)
+    end
+  end
+
+  describe "get_user_by_email/1" do
+    test "returns the user with given email",
+         %{user: user} do
+      with {:ok, %User{} = found_user} <- Users.get_user_by_email(user.email) do
+        assert found_user == %{user | password: nil}
+      end
+    end
+
+    test "returns not_found when user is not found" do
+      email = Faker.Internet.email()
+      assert {:error, :not_found} = Users.get_user_by_email(email)
+    end
+  end
+
+  describe "get_user_by_username/1" do
+    test "returns the user with given username",
+         %{user: user} do
+      with {:ok, %User{} = found_user} <- Users.get_user_by_username(user.username) do
+        assert found_user == %{user | password: nil}
+      end
+    end
+
+    test "returns not_found when user is not found" do
+      username = Faker.Internet.user_name()
+      assert {:error, :not_found} = Users.get_user_by_username(username)
     end
   end
 
@@ -116,7 +144,7 @@ defmodule RealWorld.UsersTest do
       assert updated_user.bio == update_user_attrs.bio
       assert updated_user.image == update_user_attrs.image
 
-      with {%User{} = found_user} <- Users.get_user_by_id(updated_user.id) do
+      with {:ok, %User{} = found_user} <- Users.get_user_by_id(updated_user.id) do
         assert updated_user == found_user
       end
     end

@@ -39,6 +39,8 @@ defmodule RealWorldWeb.Router do
 
     get "/user", UserController, :get_current_user
     put "/user", UserController, :update_user
+
+    post "/profiles/:username/follow", ProfileController, :follow_user
   end
 
   # Enables LiveDashboard only for development
