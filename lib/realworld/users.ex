@@ -25,7 +25,7 @@ defmodule RealWorld.Users do
 
   def verify_password_by_email(email, password) do
     case get_user_by_email(email) do
-      nil -> {:not_found_error, "User not found"}
+      nil -> {:error, :not_found}
       user -> {:ok, Argon2.verify_pass(password, user.password_hash)}
     end
   end

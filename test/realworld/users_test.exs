@@ -112,8 +112,7 @@ defmodule RealWorld.UsersTest do
       email = Faker.Internet.email()
       password = List.to_string(Faker.Lorem.characters())
 
-      assert {:not_found_error, error_message} = Users.verify_password_by_email(email, password)
-      assert error_message == "User not found"
+      assert {:error, :not_found} = Users.verify_password_by_email(email, password)
     end
   end
 end

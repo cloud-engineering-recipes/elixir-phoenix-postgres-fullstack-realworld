@@ -31,6 +31,7 @@ defmodule RealWorldWeb.Router do
     pipe_through :api
 
     post "/users", UserController, :register_user
+    post "/users/login", UserController, :login
   end
 
   scope "/api", RealWorldWeb do

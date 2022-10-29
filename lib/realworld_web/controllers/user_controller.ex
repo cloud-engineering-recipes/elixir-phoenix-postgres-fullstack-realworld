@@ -21,6 +21,23 @@ defmodule RealWorldWeb.UserController do
     end
   end
 
+  def login(
+        conn,
+        %{"user" => %{"email" => email, "password" => password}}
+      ) do
+    case Users.verify_password_by_email(email, password) do
+      {:ok, true} ->
+        user = Users.get_user_by_email(email)
+        {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+
+        conn
+        |> render("show.json", %{user: user, token: token})
+
+      _ ->
+        {:error, :unauthorized}
+    end
+  end
+
   def get_current_user(conn, _params) do
     user = conn.private.guardian_default_resource
     token = conn.private.guardian_default_token

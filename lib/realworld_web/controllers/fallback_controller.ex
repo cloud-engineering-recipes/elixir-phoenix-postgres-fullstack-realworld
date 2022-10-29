@@ -11,8 +11,15 @@ defmodule RealWorldWeb.FallbackController do
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
     conn
     |> put_status(:unprocessable_entity)
-    |> put_view(RealWorldWeb.ChangesetView)
-    |> render("error.json", changeset: changeset)
+    |> put_view(RealWorldWeb.ErrorView)
+    |> render("changeset.json", changeset: changeset)
+  end
+
+  def call(conn, {:error, :unauthorized}) do
+    conn
+    |> put_status(:unauthorized)
+    |> put_view(RealWorldWeb.ErrorView)
+    |> render("401.json")
   end
 
   # This clause is an example of how to handle resources that cannot be found.
