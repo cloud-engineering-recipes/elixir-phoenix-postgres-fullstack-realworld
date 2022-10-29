@@ -86,5 +86,34 @@ defmodule RealWorld.UsersTest do
       user_id = Faker.UUID.v4()
       assert Users.get_user_by_id(user_id) == nil
     end
+
+    test "verify_password_by_email/2 returns true when user password matches" do
+      email = Faker.Internet.email()
+      username = Faker.Internet.user_name()
+      password = List.to_string(Faker.Lorem.characters())
+
+      assert {:ok, %User{} = user} =
+               Users.create_user(%{email: email, username: username, password: password})
+
+      assert {:ok, password_matches} = Users.verify_password_by_email(user.email, password)
+      assert password_matches
+    end
+
+    test "verify_password_by_email/2 returns false when user password doesn't match", %{
+      user: user
+    } do
+      password = List.to_string(Faker.Lorem.characters())
+
+      assert {:ok, password_matches} = Users.verify_password_by_email(user.email, password)
+      assert !password_matches
+    end
+
+    test "verify_password_by_email/2 returns error when user is not found" do
+      email = Faker.Internet.email()
+      password = List.to_string(Faker.Lorem.characters())
+
+      assert {:not_found_error, error_message} = Users.verify_password_by_email(email, password)
+      assert error_message == "User not found"
+    end
   end
 end
