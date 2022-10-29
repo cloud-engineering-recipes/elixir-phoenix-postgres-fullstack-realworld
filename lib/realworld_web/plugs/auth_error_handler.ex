@@ -8,8 +8,8 @@ defmodule RealWorldWeb.AuthErrorHandler do
   @behaviour Guardian.Plug.ErrorHandler
 
   @impl Guardian.Plug.ErrorHandler
-  def auth_error(conn, {type, _reason}, _opts) do
-    body = Jason.encode!(%{errors: %{body: [to_string(type)]}})
+  def auth_error(conn, {_type, _reason}, _opts) do
+    body = Jason.encode!(%{errors: %{body: ["unauthenticated"]}})
 
     conn
     |> put_resp_content_type("application/json")
