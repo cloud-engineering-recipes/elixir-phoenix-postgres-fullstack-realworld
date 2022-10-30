@@ -24,4 +24,21 @@ defmodule RealWorldWeb.ProfileController do
       |> render("show.json", %{profile: profile})
     end
   end
+
+  def get_profile(conn, %{"username" => username}) do
+    follower_id =
+      if Map.has_key?(conn.private, :guardian_default_resource) do
+        conn.private.guardian_default_resource.id
+      else
+        nil
+      end
+
+    Logger.info("Getting profile. username: #{username}, follower_id: #{follower_id}...")
+
+    with {:ok, user} <- Users.get_user_by_username(username),
+         {:ok, profile} <- Profiles.get_profile(user.id, follower_id) do
+      conn
+      |> render("show.json", %{profile: profile})
+    end
+  end
 end

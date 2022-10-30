@@ -31,4 +31,30 @@ defmodule RealWorld.Profiles do
        }}
     end
   end
+
+  def get_profile(user_id, follower_id \\ nil) do
+    Logger.debug("get_profile. user_id: #{user_id}; follower_id: #{follower_id}...")
+
+    with {:ok, user} <- Users.get_user_by_id(user_id),
+         profile <- %Profile{
+           username: user.username,
+           bio: user.bio,
+           image: user.image,
+           following: false
+         } do
+      if follower_id != nil do
+        {:ok, following} = is_following?(follower_id, user.id)
+        {:ok, %{profile | following: following}}
+      else
+        {:ok, profile}
+      end
+    end
+  end
+
+  defp is_following?(follower_id, followed_id) do
+    case Repo.get_by(Follow, follower_id: follower_id, followed_id: followed_id) do
+      nil -> {:ok, false}
+      _ -> {:ok, true}
+    end
+  end
 end
