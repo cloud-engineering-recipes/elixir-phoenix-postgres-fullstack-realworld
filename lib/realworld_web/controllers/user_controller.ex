@@ -31,14 +31,15 @@ defmodule RealWorldWeb.UserController do
       ) do
     Logger.info("Logging user. email: #{email}....")
 
-    with {:ok, true} <- Users.verify_password_by_email(email, password) do
-      {:ok, user} = Users.get_user_by_email(email)
-      {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+    case Users.verify_password_by_email(email, password) do
+      {:ok, true} ->
+        {:ok, user} = Users.get_user_by_email(email)
+        {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
-      Logger.info("User logged in! email: #{email}....")
+        Logger.info("User logged in! email: #{email}....")
 
-      render(conn, "show.json", %{user: user, token: token})
-    else
+        render(conn, "show.json", %{user: user, token: token})
+
       error ->
         Logger.error("Logging user error! email: #{email}; error: #{inspect(error)}")
         {:error, :unauthorized}
