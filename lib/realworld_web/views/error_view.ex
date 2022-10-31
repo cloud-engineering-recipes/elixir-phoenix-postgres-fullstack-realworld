@@ -2,7 +2,11 @@ defmodule RealWorldWeb.ErrorView do
   use RealWorldWeb, :view
 
   def render("401.json", _assigns) do
-    %{errors: %{body: ["unauthorized"]}}
+    %{errors: %{body: ["Unauthorized"]}}
+  end
+
+  def render("404.json", %{error_messages: error_messages}) do
+    %{errors: %{body: error_messages}}
   end
 
   def render("changeset.json", %{changeset: changeset}) do

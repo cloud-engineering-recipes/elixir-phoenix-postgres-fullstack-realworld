@@ -2,13 +2,14 @@ defmodule RealWorldWeb.UserControllerTest do
   use RealWorldWeb.ConnCase
 
   import RealWorld.Factory
+  import RealWorld.TestUtils
 
   setup %{conn: conn} do
     {:ok, conn: put_req_header(conn, "accept", "application/json"), user: insert(:user)}
   end
 
   describe "register user" do
-    test "renders user when data is valid", %{conn: conn} do
+    test "returns 201 and renders an user", %{conn: conn} do
       create_user_params = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
@@ -27,7 +28,7 @@ defmodule RealWorldWeb.UserControllerTest do
       assert user["image"] == nil
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
+    test "returns 422 and renders errors when data is invalid", %{conn: conn} do
       create_user_params = %{
         email: "invalid",
         username: Faker.Internet.user_name(),
@@ -43,7 +44,7 @@ defmodule RealWorldWeb.UserControllerTest do
   end
 
   describe "login" do
-    test "renders user when user is authenticated", %{conn: conn, user: user} do
+    test "returns 200 and renders an user", %{conn: conn, user: user} do
       login_params = %{
         email: user.email,
         password: user.password
@@ -65,7 +66,7 @@ defmodule RealWorldWeb.UserControllerTest do
       assert logged_user == found_user
     end
 
-    test "renders errors when user is not found", %{conn: conn} do
+    test "returns 401 and renders errors when user is not found", %{conn: conn} do
       login_params = %{
         email: Faker.Internet.email(),
         password: List.to_string(Faker.Lorem.characters())
@@ -75,10 +76,10 @@ defmodule RealWorldWeb.UserControllerTest do
         conn
         |> post(Routes.user_path(conn, :login, user: login_params))
 
-      assert json_response(login_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(login_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
 
-    test "renders errors when password doesn't match", %{conn: conn, user: user} do
+    test "returns 401 and renders errors when password doesn't match", %{conn: conn, user: user} do
       login_params = %{
         email: user.email,
         password: List.to_string(Faker.Lorem.characters())
@@ -88,55 +89,47 @@ defmodule RealWorldWeb.UserControllerTest do
         conn
         |> post(Routes.user_path(conn, :login, user: login_params))
 
-      assert json_response(login_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(login_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
   end
 
   describe "get current user" do
-    test "renders user when user is found", %{conn: conn, user: user} do
-      login_params = %{
-        email: user.email,
-        password: user.password
-      }
-
-      login_conn =
-        conn
-        |> post(Routes.user_path(conn, :login, user: login_params))
-
-      assert %{"user" => logged_user} = json_response(login_conn, 200)
-
+    test "returns 200 and renders the user", %{conn: conn, user: user} do
       get_current_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{logged_user["token"]}")
+        |> secure_conn(user.id)
         |> get(Routes.user_path(conn, :get_current_user))
 
       assert %{"user" => found_user} = json_response(get_current_user_conn, 200)
-      assert logged_user == found_user
+      assert found_user["username"] == user.username
+      assert found_user["email"] == user.email
+      assert found_user["token"] != nil
+      assert found_user["bio"] == user.bio
+      assert found_user["image"] == user.image
     end
 
-    test "renders errors when bearer token is not sent", %{conn: conn} do
+    test "returns 401 and renders errors when bearer token is not sent", %{conn: conn} do
       get_current_user_conn =
         conn
         |> get(Routes.user_path(conn, :get_current_user))
 
-      assert json_response(get_current_user_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(get_current_user_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
 
-    test "renders errors when user is not found", %{conn: conn} do
-      token =
-        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJleGFtcGxlLmNvbSIsImV4cCI6MTY2NzAwMDMxNSwiaWF0IjoxNjY2OTk2NzE1LCJpc3MiOiJleGFtcGxlLmNvbSIsImp0aSI6IjI4YTdmNTA2LWFhODUtNDYwMS04ZTcwLTM1YmExMmY4YzgyOSIsIm5iZiI6MTY2Njk5NjcxNCwic3ViIjoiODgxMzc4MGItYjM1Ny00MzE4LTg0OGQtYzEwOTcxMmNkZTY3IiwidHlwIjoiYWNjZXNzIn0.LjUeJGhMbWxuCGjor0OU98q1ED7BTkIkU61NgFHvtXQwtAZMSNyt1qX8XRJVJukHLnFQ1PusN4RYqw_ESTZzrw"
+    test "returns 401 and renders errors when user is not found", %{conn: conn} do
+      user_id = Faker.UUID.v4()
 
       get_current_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{token}")
+        |> secure_conn(user_id)
         |> get(Routes.user_path(conn, :get_current_user))
 
-      assert json_response(get_current_user_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(get_current_user_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
   end
 
   describe "update user" do
-    test "renders user when the data is valid", %{conn: conn, user: user} do
+    test "returns 200 and renders the user", %{conn: conn, user: user} do
       update_user_params = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
@@ -145,20 +138,9 @@ defmodule RealWorldWeb.UserControllerTest do
         image: Faker.Internet.url()
       }
 
-      login_params = %{
-        email: user.email,
-        password: user.password
-      }
-
-      login_conn =
-        conn
-        |> post(Routes.user_path(conn, :login, user: login_params))
-
-      assert %{"user" => logged_user} = json_response(login_conn, 200)
-
       update_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{logged_user["token"]}")
+        |> secure_conn(user.id)
         |> get(Routes.user_path(conn, :update_user, user: update_user_params))
 
       assert %{"user" => updated_user} = json_response(update_user_conn, 200)
@@ -172,7 +154,7 @@ defmodule RealWorldWeb.UserControllerTest do
       assert updated_user == found_user
     end
 
-    test "renders errors when bearer token is not sent", %{conn: conn} do
+    test "returns 401 and renders errors when bearer token is not sent", %{conn: conn} do
       update_user_params = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
@@ -185,10 +167,12 @@ defmodule RealWorldWeb.UserControllerTest do
         conn
         |> get(Routes.user_path(conn, :update_user, user: update_user_params))
 
-      assert json_response(update_user_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(update_user_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
 
-    test "renders errors when user is not found", %{conn: conn} do
+    test "returns 401 and renders errors when user is not found", %{conn: conn} do
+      user_id = Faker.UUID.v4()
+
       update_user_params = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
@@ -197,15 +181,12 @@ defmodule RealWorldWeb.UserControllerTest do
         image: Faker.Internet.url()
       }
 
-      token =
-        "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJleGFtcGxlLmNvbSIsImV4cCI6MTY2NzAwMDMxNSwiaWF0IjoxNjY2OTk2NzE1LCJpc3MiOiJleGFtcGxlLmNvbSIsImp0aSI6IjI4YTdmNTA2LWFhODUtNDYwMS04ZTcwLTM1YmExMmY4YzgyOSIsIm5iZiI6MTY2Njk5NjcxNCwic3ViIjoiODgxMzc4MGItYjM1Ny00MzE4LTg0OGQtYzEwOTcxMmNkZTY3IiwidHlwIjoiYWNjZXNzIn0.LjUeJGhMbWxuCGjor0OU98q1ED7BTkIkU61NgFHvtXQwtAZMSNyt1qX8XRJVJukHLnFQ1PusN4RYqw_ESTZzrw"
-
       update_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{token}")
+        |> secure_conn(user_id)
         |> get(Routes.user_path(conn, :update_user, user: update_user_params))
 
-      assert json_response(update_user_conn, 401)["errors"]["body"] == ["unauthorized"]
+      assert json_response(update_user_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
   end
 end

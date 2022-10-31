@@ -33,6 +33,7 @@ defmodule RealWorld.Users.User do
     |> validate_required([:password])
     |> validate_length(:password, min: 8)
     |> put_pass_hash()
+    |> change(password: nil)
   end
 
   def update_changeset(user, attrs) do
@@ -40,6 +41,7 @@ defmodule RealWorld.Users.User do
     |> cast(attrs, [:password])
     |> validate_length(:password, min: 8)
     |> put_pass_hash()
+    |> change(password: nil)
   end
 
   defp put_pass_hash(%Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset) do

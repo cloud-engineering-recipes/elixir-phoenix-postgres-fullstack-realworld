@@ -20,6 +20,10 @@ defmodule RealWorldWeb.Router do
     plug RealWorldWeb.AuthAccessPipeline
   end
 
+  pipeline :optional_authenticated do
+    plug RealWorldWeb.OptionalAuthAccessPipeline
+  end
+
   scope "/", RealWorldWeb do
     pipe_through :browser
 
@@ -39,6 +43,14 @@ defmodule RealWorldWeb.Router do
 
     get "/user", UserController, :get_current_user
     put "/user", UserController, :update_user
+
+    post "/profiles/:username/follow", ProfileController, :follow_user
+  end
+
+  scope "/api", RealWorldWeb do
+    pipe_through([:api, :optional_authenticated])
+
+    get "/profiles/:username", ProfileController, :get_profile
   end
 
   # Enables LiveDashboard only for development

@@ -3,10 +3,14 @@ defmodule RealWorld.Users do
   The Users context.
   """
 
+  require Logger
+
   alias RealWorld.Repo
   alias RealWorld.Users.User
 
-  def create_user(%{email: _email, username: _username, password: _password} = attrs) do
+  def create_user(%{email: email, username: username, password: _password} = attrs) do
+    Logger.debug("create_user. email: #{email}, username: #{username}...")
+
     %User{}
     |> User.creation_changeset(attrs)
     |> User.changeset(attrs)
@@ -14,32 +18,48 @@ defmodule RealWorld.Users do
   end
 
   def get_user_by_id(user_id) do
-    User
-    |> Repo.get(user_id)
+    Logger.debug("get_user_by_id #{user_id}...")
+
+    case Repo.get(User, user_id) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
   end
 
   def get_user_by_email(email) do
-    User
-    |> Repo.get_by(email: email)
+    Logger.debug("get_user_by_email #{email}...")
+
+    case Repo.get_by(User, email: email) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
+  end
+
+  def get_user_by_username(username) do
+    Logger.debug("get_user_by_username #{username}...")
+
+    case Repo.get_by(User, username: username) do
+      nil -> {:error, :not_found}
+      user -> {:ok, user}
+    end
   end
 
   def update_user(user_id, attrs) do
-    case get_user_by_id(user_id) do
-      nil ->
-        {:error, :not_found}
+    Logger.debug("update_user. user_id: #{user_id}...")
 
-      user ->
-        user
-        |> User.update_changeset(attrs)
-        |> User.changeset(attrs)
-        |> Repo.update()
+    with {:ok, user} <- get_user_by_id(user_id) do
+      user
+      |> User.update_changeset(attrs)
+      |> User.changeset(attrs)
+      |> Repo.update()
     end
   end
 
   def verify_password_by_email(email, password) do
-    case get_user_by_email(email) do
-      nil -> {:error, :not_found}
-      user -> {:ok, Argon2.verify_pass(password, user.password_hash)}
+    Logger.debug("verify_password_by_email. email: #{email}...")
+
+    with {:ok, user} <- get_user_by_email(email) do
+      {:ok, Argon2.verify_pass(password, user.password_hash)}
     end
   end
 end

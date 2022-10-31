@@ -5,6 +5,8 @@ defmodule RealWorldWeb.Guardian do
 
   use Guardian, otp_app: :realworld
 
+  require Logger
+
   alias RealWorld.{Users, Users.User}
 
   def subject_for_token(%User{} = user, _claims) do
@@ -16,10 +18,7 @@ defmodule RealWorldWeb.Guardian do
   end
 
   def resource_from_claims(%{"sub" => user_id}) do
-    case Users.get_user_by_id(user_id) do
-      nil -> {:error, "User not found"}
-      user -> {:ok, user}
-    end
+    Users.get_user_by_id(user_id)
   end
 
   def resource_from_claims(_claims) do
