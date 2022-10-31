@@ -15,13 +15,23 @@ defmodule RealWorldWeb.ProfileController do
       "Following user. follower_id: #{follower.id}; followed_username: #{followed_username}..."
     )
 
-    with {:ok, followed} <- Users.get_user_by_username(followed_username),
-         {:ok, profile} <-
-           Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id}) do
-      Logger.info("Followed user! follower_id: #{follower.id}; followed_id: #{followed.id}...")
+    case Users.get_user_by_username(followed_username) do
+      {:ok, followed} ->
+        with {:ok, profile} <-
+               Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id}) do
+          Logger.info(
+            "Followed user! follower_id: #{follower.id}; followed_id: #{followed.id}..."
+          )
 
-      conn
-      |> render("show.json", %{profile: profile})
+          conn
+          |> render("show.json", %{profile: profile})
+        end
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> put_view(RealWorldWeb.ErrorView)
+        |> render("404.json", %{error_messages: ["User #{followed_username} not found"]})
     end
   end
 
@@ -33,12 +43,21 @@ defmodule RealWorldWeb.ProfileController do
         nil
       end
 
-    Logger.info("Getting profile. username: #{username}, follower_id: #{follower_id}...")
+    Logger.debug("Getting profile. username: #{username}, follower_id: #{follower_id}...")
 
-    with {:ok, user} <- Users.get_user_by_username(username),
-         {:ok, profile} <- Profiles.get_profile(user.id, follower_id) do
-      conn
-      |> render("show.json", %{profile: profile})
+    case Users.get_user_by_username(username) do
+      {:ok, user} ->
+        with {:ok, profile} <-
+               Profiles.get_profile(user.id, follower_id) do
+          conn
+          |> render("show.json", %{profile: profile})
+        end
+
+      {:error, :not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> put_view(RealWorldWeb.ErrorView)
+        |> render("404.json", %{error_messages: ["User #{username} not found"]})
     end
   end
 end

@@ -9,7 +9,7 @@ defmodule RealWorld.ProfilesTest do
   end
 
   describe "follow_user/1" do
-    test "follows a profile with valid data", %{follower: follower, followed: followed} do
+    test "follows an user and returns his/her profile", %{follower: follower, followed: followed} do
       assert {:ok, %Profile{} = profile} =
                Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id})
 
@@ -23,14 +23,14 @@ defmodule RealWorld.ProfilesTest do
       end
     end
 
-    test "returns an error when the follower is not found", %{followed: followed} do
+    test "returns :not_found when the follower is not found", %{followed: followed} do
       follower_id = Faker.UUID.v4()
 
       assert {:error, :not_found} =
                Profiles.follow_user(%{follower_id: follower_id, followed_id: followed.id})
     end
 
-    test "returns an error when the followed is not found", %{follower: follower} do
+    test "returns :not_found when the followed is not found", %{follower: follower} do
       followed_id = Faker.UUID.v4()
 
       assert {:error, :not_found} =
@@ -39,7 +39,17 @@ defmodule RealWorld.ProfilesTest do
   end
 
   describe "get_profile/2" do
-    test "returns a profile when user is followed", %{follower: follower, followed: followed} do
+    test "returns a profile with :following false when follower id is nil", %{followed: user} do
+      with {:ok, %Profile{} = profile} <- Profiles.get_profile(user.id) do
+        assert profile.username == user.username
+        assert profile.bio == user.bio
+        assert profile.image == user.image
+        assert !profile.following
+      end
+    end
+
+    test "returns a profile with :following true when given a follower id and the user is followed",
+         %{follower: follower, followed: followed} do
       assert {:ok, _} =
                Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id})
 
@@ -51,7 +61,8 @@ defmodule RealWorld.ProfilesTest do
       end
     end
 
-    test "returns a profile when user is not followed", %{follower: follower, followed: followed} do
+    test "returns a profile with :following false when given a follower id and the user is not followed",
+         %{follower: follower, followed: followed} do
       with {:ok, %Profile{} = profile} <- Profiles.get_profile(followed.id, follower.id) do
         assert profile.username == followed.username
         assert profile.bio == followed.bio
@@ -60,22 +71,15 @@ defmodule RealWorld.ProfilesTest do
       end
     end
 
-    test "returns a profile when follower is nil", %{followed: user} do
-      with {:ok, %Profile{} = profile} <- Profiles.get_profile(user.id) do
-        assert profile.username == user.username
-        assert profile.bio == user.bio
-        assert profile.image == user.image
-        assert !profile.following
-      end
-    end
-
-    test "returns an error when the user is not found" do
+    test "returns :not_found when the user not found" do
       user_id = Faker.UUID.v4()
 
       assert {:error, :not_found} = Profiles.get_profile(user_id)
     end
 
-    test "returns an error when the follower is not found", %{followed: followed} do
+    test "returns :not_found when given a follower id and the follower is not found", %{
+      followed: followed
+    } do
       follower_id = Faker.UUID.v4()
 
       assert {:error, :not_found} = Profiles.get_profile(followed.id, follower_id)
