@@ -85,4 +85,61 @@ defmodule RealWorld.ProfilesTest do
       assert {:error, :not_found} = Profiles.get_profile(followed.id, follower_id)
     end
   end
+
+  describe "unfollow_user/1" do
+    test "returns a profile with :following false when user is followed", %{
+      follower: follower,
+      followed: followed
+    } do
+      assert {:ok, _} =
+               Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id})
+
+      assert {:ok, %Profile{} = profile} =
+               Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed.id})
+
+      assert profile.username == followed.username
+      assert profile.bio == followed.bio
+      assert profile.image == followed.image
+      assert !profile.following
+
+      assert {:ok, got_profile} = Profiles.get_profile(followed.id, follower.id)
+
+      assert profile == got_profile
+    end
+
+    test "returns a profile with :following false when user is not followed", %{
+      follower: follower,
+      followed: followed
+    } do
+      assert {:ok, %Profile{} = profile} =
+               Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed.id})
+
+      assert profile.username == followed.username
+      assert profile.bio == followed.bio
+      assert profile.image == followed.image
+      assert !profile.following
+
+      assert {:ok, got_profile} = Profiles.get_profile(followed.id, follower.id)
+
+      assert profile == got_profile
+    end
+
+    test "returns :not_found when the follower is not found", %{
+      followed: followed
+    } do
+      follower_id = Faker.UUID.v4()
+
+      assert {:error, :not_found} =
+               Profiles.unfollow_user(%{follower_id: follower_id, followed_id: followed.id})
+    end
+
+    test "returns :not_found when the followed is not found", %{
+      follower: follower
+    } do
+      followed_id = Faker.UUID.v4()
+
+      assert {:error, :not_found} =
+               Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed_id})
+    end
+  end
 end

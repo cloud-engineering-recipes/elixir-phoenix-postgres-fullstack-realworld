@@ -10,7 +10,7 @@ defmodule RealWorld.Profiles do
   alias RealWorld.Users
 
   def follow_user(%{follower_id: follower_id, followed_id: followed_id}) do
-    Logger.debug("follow_user. follower_id: #{follower_id}; followed_id: #{followed_id}...")
+    Logger.info("follow_user. follower_id: #{follower_id}; followed_id: #{followed_id}...")
 
     with {:ok, follower} <- Users.get_user_by_id(follower_id),
          {:ok, followed} <- Users.get_user_by_id(followed_id),
@@ -18,7 +18,7 @@ defmodule RealWorld.Profiles do
            %Follow{}
            |> Follow.changeset(%{follower_id: follower.id, followed_id: followed.id})
            |> Repo.insert() do
-      Logger.debug(
+      Logger.info(
         "follow_user successful! follower_id: #{follower_id}; followed_id: #{followed_id}"
       )
 
@@ -50,6 +50,24 @@ defmodule RealWorld.Profiles do
       else
         {:ok, profile}
       end
+    end
+  end
+
+  def unfollow_user(%{follower_id: follower_id, followed_id: followed_id}) do
+    Logger.info("unfollow_user. follower_id: #{follower_id}; followed_id: #{followed_id}...")
+
+    with {:ok, profile} <- get_profile(followed_id, follower_id) do
+      if profile.following do
+        {:ok, _follow} =
+          Repo.get_by!(Follow, follower_id: follower_id, followed_id: followed_id)
+          |> Repo.delete()
+      end
+
+      Logger.info(
+        "unfollow_user successful!. follower_id: #{follower_id}; followed_id: #{followed_id}"
+      )
+
+      {:ok, %{profile | following: false}}
     end
   end
 

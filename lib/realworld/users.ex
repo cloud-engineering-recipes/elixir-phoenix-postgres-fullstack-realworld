@@ -9,7 +9,7 @@ defmodule RealWorld.Users do
   alias RealWorld.Users.User
 
   def create_user(%{email: email, username: username, password: _password} = attrs) do
-    Logger.debug("create_user. email: #{email}, username: #{username}...")
+    Logger.info("create_user. email: #{email}, username: #{username}...")
 
     %User{}
     |> User.creation_changeset(attrs)
@@ -45,7 +45,7 @@ defmodule RealWorld.Users do
   end
 
   def update_user(user_id, attrs) do
-    Logger.debug("update_user. user_id: #{user_id}...")
+    Logger.info("update_user. user_id: #{user_id}...")
 
     with {:ok, user} <- get_user_by_id(user_id) do
       user
