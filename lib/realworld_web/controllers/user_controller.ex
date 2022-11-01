@@ -50,7 +50,7 @@ defmodule RealWorldWeb.UserController do
     user = conn.private.guardian_default_resource
     token = conn.private.guardian_default_token
 
-    Logger.info("Got user! user_id: #{user.id}")
+    Logger.debug("Got user! user_id: #{user.id}")
 
     render(conn, "show.json", %{user: user, token: token})
   end
