@@ -45,6 +45,7 @@ defmodule RealWorldWeb.Router do
     put "/user", UserController, :update_user
 
     post "/profiles/:username/follow", ProfileController, :follow_user
+    delete "/profiles/:username/follow", ProfileController, :unfollow_user
   end
 
   scope "/api", RealWorldWeb do
