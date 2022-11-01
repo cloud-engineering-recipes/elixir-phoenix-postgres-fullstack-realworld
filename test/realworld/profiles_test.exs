@@ -26,14 +26,14 @@ defmodule RealWorld.ProfilesTest do
     test "returns :not_found when the follower is not found", %{followed: followed} do
       follower_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} =
+      assert {:not_found, "User #{follower_id} not found"} ==
                Profiles.follow_user(%{follower_id: follower_id, followed_id: followed.id})
     end
 
     test "returns :not_found when the followed is not found", %{follower: follower} do
       followed_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} =
+      assert {:not_found, "User #{followed_id} not found"} ==
                Profiles.follow_user(%{follower_id: follower.id, followed_id: followed_id})
     end
   end
@@ -74,7 +74,7 @@ defmodule RealWorld.ProfilesTest do
     test "returns :not_found when the user not found" do
       user_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} = Profiles.get_profile(user_id)
+      assert {:not_found, "User #{user_id} not found"} == Profiles.get_profile(user_id)
     end
 
     test "returns :not_found when given a follower id and the follower is not found", %{
@@ -82,7 +82,8 @@ defmodule RealWorld.ProfilesTest do
     } do
       follower_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} = Profiles.get_profile(followed.id, follower_id)
+      assert {:not_found, "User #{follower_id} not found"} ==
+               Profiles.get_profile(followed.id, follower_id)
     end
   end
 
@@ -129,7 +130,7 @@ defmodule RealWorld.ProfilesTest do
     } do
       follower_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} =
+      assert {:not_found, "User #{follower_id} not found"} ==
                Profiles.unfollow_user(%{follower_id: follower_id, followed_id: followed.id})
     end
 
@@ -138,7 +139,7 @@ defmodule RealWorld.ProfilesTest do
     } do
       followed_id = Faker.UUID.v4()
 
-      assert {:error, :not_found} =
+      assert {:not_found, "User #{followed_id} not found"} ==
                Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed_id})
     end
   end

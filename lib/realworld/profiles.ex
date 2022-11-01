@@ -43,9 +43,8 @@ defmodule RealWorld.Profiles do
            following: false
          } do
       if follower_id != nil do
-        case is_following?(follower_id, user.id) do
-          {:ok, following} -> {:ok, %{profile | following: following}}
-          {:error, error} -> {:error, error}
+        with {:ok, following} <- is_following?(follower_id, user.id) do
+          {:ok, %{profile | following: following}}
         end
       else
         {:ok, profile}

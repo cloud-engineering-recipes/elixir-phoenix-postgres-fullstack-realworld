@@ -11,7 +11,7 @@ defmodule RealWorld.Profiles.Follow do
     field :follower_id, :binary_id
     field :followed_id, :binary_id
 
-    timestamps()
+    timestamps(updated_at: false)
   end
 
   def changeset(user, attrs) do

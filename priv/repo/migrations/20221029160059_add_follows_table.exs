@@ -7,7 +7,7 @@ defmodule RealWorld.Repo.Migrations.AddFollowsTable do
       add :follower_id, references("users", type: :uuid), null: false
       add :followed_id, references("users", type: :uuid), null: false
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime, updated_at: false)
     end
 
     create unique_index("follows", [:follower_id, :followed_id])

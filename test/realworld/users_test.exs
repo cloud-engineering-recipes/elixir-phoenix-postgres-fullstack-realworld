@@ -93,7 +93,9 @@ defmodule RealWorld.UsersTest do
 
     test "returns :not_found when the user is not found" do
       user_id = Faker.UUID.v4()
-      assert {:error, :not_found} = Users.get_user_by_id(user_id)
+
+      assert {:not_found, "User #{user_id} not found"} ==
+               Users.get_user_by_id(user_id)
     end
   end
 
@@ -107,7 +109,9 @@ defmodule RealWorld.UsersTest do
 
     test "returns :not_found when the user is not found" do
       email = Faker.Internet.email()
-      assert {:error, :not_found} = Users.get_user_by_email(email)
+
+      assert {:not_found, "Email #{email} not found"} ==
+               Users.get_user_by_email(email)
     end
   end
 
@@ -121,7 +125,9 @@ defmodule RealWorld.UsersTest do
 
     test "returns :not_found when the user is not found" do
       username = Faker.Internet.user_name()
-      assert {:error, :not_found} = Users.get_user_by_username(username)
+
+      assert {:not_found, "Username #{username} not found"} ==
+               Users.get_user_by_username(username)
     end
   end
 
@@ -229,7 +235,8 @@ defmodule RealWorld.UsersTest do
       email = Faker.Internet.email()
       password = List.to_string(Faker.Lorem.characters())
 
-      assert {:error, :not_found} = Users.verify_password_by_email(email, password)
+      assert {:not_found, "Email #{email} not found"} ==
+               Users.verify_password_by_email(email, password)
     end
   end
 end

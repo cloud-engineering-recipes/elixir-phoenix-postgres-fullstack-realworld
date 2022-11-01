@@ -10,7 +10,7 @@ defmodule RealWorld.Users.User do
   schema "users" do
     field :email, :string
     field :username, :string
-    field :password, :string, virtual: true
+    field :password, :string, virtual: true, redact: true
     field :password_hash, :string
     field :bio, :string
     field :image, :string

@@ -70,7 +70,7 @@ defmodule RealWorldWeb.ProfileControllerTest do
         |> post(Routes.profile_path(conn, :follow_user, followed_username))
 
       assert json_response(follow_user_conn, 404)["errors"]["body"] == [
-               "User #{followed_username} not found"
+               "Username #{followed_username} not found"
              ]
     end
   end
@@ -162,7 +162,7 @@ defmodule RealWorldWeb.ProfileControllerTest do
         |> get(Routes.profile_path(conn, :get_profile, followed_username))
 
       assert json_response(get_profile_conn, 404)["errors"]["body"] == [
-               "User #{followed_username} not found"
+               "Username #{followed_username} not found"
              ]
     end
   end
@@ -266,7 +266,7 @@ defmodule RealWorldWeb.ProfileControllerTest do
         |> delete(Routes.profile_path(conn, :unfollow_user, followed_username))
 
       assert json_response(follow_user_conn, 404)["errors"]["body"] == [
-               "User #{followed_username} not found"
+               "Username #{followed_username} not found"
              ]
     end
   end

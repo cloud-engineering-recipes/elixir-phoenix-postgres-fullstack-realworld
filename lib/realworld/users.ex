@@ -21,7 +21,7 @@ defmodule RealWorld.Users do
     Logger.debug("get_user_by_id #{user_id}...")
 
     case Repo.get(User, user_id) do
-      nil -> {:error, :not_found}
+      nil -> {:not_found, "User #{user_id} not found"}
       user -> {:ok, user}
     end
   end
@@ -30,7 +30,7 @@ defmodule RealWorld.Users do
     Logger.debug("get_user_by_email #{email}...")
 
     case Repo.get_by(User, email: email) do
-      nil -> {:error, :not_found}
+      nil -> {:not_found, "Email #{email} not found"}
       user -> {:ok, user}
     end
   end
@@ -39,7 +39,7 @@ defmodule RealWorld.Users do
     Logger.debug("get_user_by_username #{username}...")
 
     case Repo.get_by(User, username: username) do
-      nil -> {:error, :not_found}
+      nil -> {:not_found, "Username #{username} not found"}
       user -> {:ok, user}
     end
   end

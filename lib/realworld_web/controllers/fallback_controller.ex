@@ -6,6 +6,20 @@ defmodule RealWorldWeb.FallbackController do
   """
   use RealWorldWeb, :controller
 
+  def call(conn, {:unauthorized, _}) do
+    conn
+    |> put_status(:unauthorized)
+    |> put_view(RealWorldWeb.ErrorView)
+    |> render("401.json", %{error_messages: ["Unauthorized"]})
+  end
+
+  def call(conn, {:not_found, error_message}) do
+    conn
+    |> put_status(:not_found)
+    |> put_view(RealWorldWeb.ErrorView)
+    |> render("404.json", %{error_messages: [error_message]})
+  end
+
   # This clause handles errors returned by Ecto's insert/update/delete.
   @impl true
   def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
@@ -13,20 +27,5 @@ defmodule RealWorldWeb.FallbackController do
     |> put_status(:unprocessable_entity)
     |> put_view(RealWorldWeb.ErrorView)
     |> render("changeset.json", changeset: changeset)
-  end
-
-  def call(conn, {:error, :unauthorized}) do
-    conn
-    |> put_status(:unauthorized)
-    |> put_view(RealWorldWeb.ErrorView)
-    |> render("401.json")
-  end
-
-  # This clause is an example of how to handle resources that cannot be found.
-  def call(conn, {:error, :not_found}) do
-    conn
-    |> put_status(:not_found)
-    |> put_view(RealWorldWeb.ErrorView)
-    |> render(:"404")
   end
 end

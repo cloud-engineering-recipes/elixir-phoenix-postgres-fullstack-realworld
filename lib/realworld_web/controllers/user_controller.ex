@@ -42,7 +42,7 @@ defmodule RealWorldWeb.UserController do
 
       error ->
         Logger.error("Logging user error! email: #{email}; error: #{inspect(error)}")
-        {:error, :unauthorized}
+        {:unauthorized, "Unauthorized"}
     end
   end
 
