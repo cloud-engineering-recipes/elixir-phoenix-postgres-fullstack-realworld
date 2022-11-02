@@ -46,12 +46,17 @@ defmodule RealWorldWeb.Router do
 
     post "/profiles/:username/follow", ProfileController, :follow_user
     delete "/profiles/:username/follow", ProfileController, :unfollow_user
+
+    post "/articles", ArticleController, :create_article
+    post "/articles/:slug/favorite", ArticleController, :favorite_article
   end
 
   scope "/api", RealWorldWeb do
     pipe_through([:api, :optional_authenticated])
 
     get "/profiles/:username", ProfileController, :get_profile
+
+    get "/articles/:slug", ArticleController, :get_article
   end
 
   # Enables LiveDashboard only for development

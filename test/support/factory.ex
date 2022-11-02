@@ -16,4 +16,17 @@ defmodule RealWorld.Factory do
       image: Faker.Internet.url()
     }
   end
+
+  def article_factory do
+    title = Faker.Lorem.sentence()
+
+    %RealWorld.Articles.Article{
+      title: title,
+      slug: Slug.slugify(title),
+      description: Faker.Lorem.sentence(),
+      body: Faker.Lorem.paragraph(),
+      tag_list: ["tag1", "tag2"],
+      author: build(:user)
+    }
+  end
 end

@@ -5,33 +5,25 @@ defmodule RealWorldWeb.ProfileController do
 
   alias RealWorld.Profiles
   alias RealWorld.Users
+  alias RealWorldWeb.Dtos.ProfileDto
 
   action_fallback(RealWorldWeb.FallbackController)
 
   def follow_user(conn, %{"username" => followed_username}) do
     follower = conn.private.guardian_default_resource
 
-    Logger.info(
-      "Following user. follower_id: #{follower.id}; followed_username: #{followed_username}..."
-    )
+    with {:ok, followed} <- Users.get_user_by_username(followed_username),
+         {:ok, _} <-
+           Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id}) do
+      profile_dto = %ProfileDto{
+        username: followed.username,
+        bio: followed.bio,
+        image: followed.image,
+        following: true
+      }
 
-    case Users.get_user_by_username(followed_username) do
-      {:ok, followed} ->
-        with {:ok, profile} <-
-               Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id}) do
-          Logger.info(
-            "Followed user! follower_id: #{follower.id}; followed_id: #{followed.id}..."
-          )
-
-          conn
-          |> render("show.json", %{profile: profile})
-        end
-
-      {:error, :not_found} ->
-        conn
-        |> put_status(:not_found)
-        |> put_view(RealWorldWeb.ErrorView)
-        |> render("404.json", %{error_messages: ["User #{followed_username} not found"]})
+      conn
+      |> render("show.json", %{profile: profile_dto})
     end
   end
 
@@ -43,48 +35,44 @@ defmodule RealWorldWeb.ProfileController do
         nil
       end
 
-    Logger.debug("Getting profile. username: #{username}, follower_id: #{follower_id}...")
+    with {:ok, user} <- Users.get_user_by_username(username) do
+      is_following =
+        if follower_id != nil do
+          {:ok, is_following} =
+            Profiles.is_following?(%{follower_id: follower_id, followed_id: user.id})
 
-    case Users.get_user_by_username(username) do
-      {:ok, user} ->
-        with {:ok, profile} <-
-               Profiles.get_profile(user.id, follower_id) do
-          conn
-          |> render("show.json", %{profile: profile})
+          is_following
+        else
+          false
         end
 
-      {:error, :not_found} ->
-        conn
-        |> put_status(:not_found)
-        |> put_view(RealWorldWeb.ErrorView)
-        |> render("404.json", %{error_messages: ["User #{username} not found"]})
+      profile_dto = %ProfileDto{
+        username: user.username,
+        bio: user.bio,
+        image: user.image,
+        following: is_following
+      }
+
+      conn
+      |> render("show.json", %{profile: profile_dto})
     end
   end
 
   def unfollow_user(conn, %{"username" => followed_username}) do
     follower = conn.private.guardian_default_resource
 
-    Logger.info(
-      "Unfollowing user. follower_id: #{follower.id}; followed_username: #{followed_username}..."
-    )
+    with {:ok, followed} <- Users.get_user_by_username(followed_username),
+         {:ok, _} <-
+           Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed.id}) do
+      profile_dto = %ProfileDto{
+        username: followed.username,
+        bio: followed.bio,
+        image: followed.image,
+        following: false
+      }
 
-    case Users.get_user_by_username(followed_username) do
-      {:ok, followed} ->
-        with {:ok, profile} <-
-               Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed.id}) do
-          Logger.info(
-            "Unfollowed user! follower_id: #{follower.id}; followed_id: #{followed.id}..."
-          )
-
-          conn
-          |> render("show.json", %{profile: profile})
-        end
-
-      {:error, :not_found} ->
-        conn
-        |> put_status(:not_found)
-        |> put_view(RealWorldWeb.ErrorView)
-        |> render("404.json", %{error_messages: ["User #{followed_username} not found"]})
+      conn
+      |> render("show.json", %{profile: profile_dto})
     end
   end
 end

@@ -4,6 +4,7 @@ defmodule RealWorldWeb.UserController do
   require Logger
 
   alias RealWorld.{Users, Users.User}
+  alias RealWorldWeb.Dtos.UserDto
 
   action_fallback(RealWorldWeb.FallbackController)
 
@@ -11,17 +12,22 @@ defmodule RealWorldWeb.UserController do
         conn,
         %{"user" => %{"email" => email, "username" => username, "password" => password}}
       ) do
-    Logger.info("Registering user. email: #{email}; username: #{username}...")
-
     with {:ok, %User{} = user} <-
            Users.create_user(%{email: email, username: username, password: password}) do
-      Logger.info("User registered!. email: #{email}; username: #{username}")
       {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+
+      user_dto = %UserDto{
+        email: user.email,
+        username: user.username,
+        token: token,
+        bio: nil,
+        image: nil
+      }
 
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.user_path(conn, :get_current_user))
-      |> render("show.json", %{user: user, token: token})
+      |> render("show.json", %{user: user_dto})
     end
   end
 
@@ -29,41 +35,60 @@ defmodule RealWorldWeb.UserController do
         conn,
         %{"user" => %{"email" => email, "password" => password}}
       ) do
-    Logger.info("Logging user. email: #{email}....")
-
     case Users.verify_password_by_email(email, password) do
       {:ok, true} ->
         {:ok, user} = Users.get_user_by_email(email)
+
         {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
-        Logger.info("User logged in! email: #{email}....")
+        user_dto = %UserDto{
+          email: user.email,
+          username: user.username,
+          token: token,
+          bio: user.bio,
+          image: user.image
+        }
 
-        render(conn, "show.json", %{user: user, token: token})
+        render(conn, "show.json", %{user: user_dto})
 
       error ->
         Logger.error("Logging user error! email: #{email}; error: #{inspect(error)}")
-        {:error, :unauthorized}
+
+        {:unauthorized, "Unauthorized"}
     end
   end
 
   def get_current_user(conn, _params) do
     user = conn.private.guardian_default_resource
+
     token = conn.private.guardian_default_token
 
-    Logger.debug("Got user! user_id: #{user.id}")
+    user_dto = %UserDto{
+      email: user.email,
+      username: user.username,
+      token: token,
+      bio: user.bio,
+      image: user.image
+    }
 
-    render(conn, "show.json", %{user: user, token: token})
+    render(conn, "show.json", %{user: user_dto})
   end
 
-  def update_user(conn, %{"user" => user_params}) do
+  def update_user(conn, %{"user" => params}) do
     user = conn.private.guardian_default_resource
+
     token = conn.private.guardian_default_token
 
-    Logger.info("Updating user. user_id: #{user.id}...")
+    with {:ok, %User{} = user} <- Users.update_user(user.id, params) do
+      user_dto = %UserDto{
+        email: user.email,
+        username: user.username,
+        token: token,
+        bio: user.bio,
+        image: user.image
+      }
 
-    with {:ok, %User{} = user} <- Users.update_user(user.id, user_params) do
-      Logger.info("Updated user! user_id: #{user.id}...")
-      render(conn, "show.json", %{user: user, token: token})
+      render(conn, "show.json", %{user: user_dto})
     end
   end
 end
