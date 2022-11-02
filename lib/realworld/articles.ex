@@ -41,6 +41,14 @@ defmodule RealWorld.Articles do
     end
   end
 
+  def update_article(article_id, attrs) do
+    with {:ok, article} <- get_article_by_id(article_id) do
+      article
+      |> Article.changeset(attrs)
+      |> Repo.update()
+    end
+  end
+
   def favorite_article(%{user_id: user_id, article_id: article_id}) do
     with {:ok, is_favorited} <- is_favorited?(%{user_id: user_id, article_id: article_id}) do
       if is_favorited do
