@@ -23,7 +23,6 @@ config :realworld, RealWorldWeb.Endpoint,
 # In test we don't send emails.
 config :realworld, RealWorld.Mailer, adapter: Swoosh.Adapters.Test
 
-# Print only warnings and errors during test
 config :logger, backends: []
 
 # Initialize plugs at runtime for faster test compilation

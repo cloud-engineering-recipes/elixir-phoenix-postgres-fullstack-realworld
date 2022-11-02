@@ -27,7 +27,7 @@ defmodule RealWorld.Articles.Article do
     |> assoc_constraint(:author)
     |> put_slug()
     |> put_tag_list()
-    |> unique_constraint([:author_id, :slug])
+    |> unique_constraint([:slug])
     |> unique_constraint([:author_id, :title])
   end
 

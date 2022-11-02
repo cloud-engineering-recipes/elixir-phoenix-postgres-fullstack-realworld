@@ -14,8 +14,7 @@ defmodule RealWorld.Repo.Migrations.AddArticlesTable do
       timestamps(type: :utc_datetime)
     end
 
-    create unique_index("articles", [:author_id, :slug])
-    create unique_index("articles", [:author_id, :title])
+    create unique_index("articles", [:slug])
     execute("CREATE INDEX article_tag_list_index ON articles USING GIN(tag_list)")
   end
 end

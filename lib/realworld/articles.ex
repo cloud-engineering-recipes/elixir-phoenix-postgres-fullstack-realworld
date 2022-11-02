@@ -5,37 +5,72 @@ defmodule RealWorld.Articles do
 
   require Logger
 
-  alias RealWorld.Articles.Article
+  import Ecto.Query
+
+  alias RealWorld.Articles.{Article, Favorite}
   alias RealWorld.Repo
   alias RealWorld.Users
 
   def create_article(
         %{
           author_id: author_id,
-          title: title,
+          title: _title,
           description: _description,
           body: _body,
           tag_list: _tag_list
         } = attrs
       ) do
-    Logger.info("create_article. author_id: #{author_id}; title: #{title}...")
-
-    with {:ok, author} <- Users.get_user_by_id(author_id),
-         {:ok, article} <-
-           %Article{}
-           |> Article.changeset(attrs)
-           |> Repo.insert() do
-      Logger.info("create_article successful! author_id: #{author.id}; title: #{title}")
-      {:ok, article}
+    with {:ok, _} <- Users.get_user_by_id(author_id) do
+      %Article{}
+      |> Article.changeset(attrs)
+      |> Repo.insert()
     end
   end
 
   def get_article_by_id(article_id) do
-    Logger.debug("get_article_by_id #{article_id}...")
-
     case Repo.get(Article, article_id) do
       nil -> {:not_found, "Article #{article_id} not found"}
       article -> {:ok, article}
+    end
+  end
+
+  def get_article_by_slug(slug) do
+    case Repo.get_by(Article, slug: slug) do
+      nil -> {:not_found, "Slug #{slug} not found"}
+      article -> {:ok, article}
+    end
+  end
+
+  def favorite_article(%{user_id: user_id, article_id: article_id}) do
+    with {:ok, is_favorited} <- is_favorited?(%{user_id: user_id, article_id: article_id}) do
+      if is_favorited do
+        {:ok, nil}
+      else
+        with {:ok, _} <-
+               %Favorite{}
+               |> Favorite.changeset(%{user_id: user_id, article_id: article_id})
+               |> Repo.insert() do
+          {:ok, nil}
+        end
+      end
+    end
+  end
+
+  def is_favorited?(%{user_id: user_id, article_id: article_id}) do
+    with {:ok, user} <- Users.get_user_by_id(user_id),
+         {:ok, article} <- get_article_by_id(article_id) do
+      case Repo.get_by(Favorite, user_id: user.id, article_id: article.id) do
+        nil -> {:ok, false}
+        _ -> {:ok, true}
+      end
+    end
+  end
+
+  def get_favorites_count(article_id) do
+    with {:ok, article} <- get_article_by_id(article_id) do
+      query = from(f in Favorite, select: f.id, where: f.article_id == ^article.id)
+
+      {:ok, Repo.aggregate(query, :count, :id)}
     end
   end
 end
