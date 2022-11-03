@@ -35,8 +35,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert article["description"] == create_article_params.description
       assert article["body"] == create_article_params.body
       assert article["tagList"] == create_article_params.tag_list
-      assert article["createdAt"] != nil
-      assert article["updatedAt"] != nil
+      assert {:ok, _} = Date.from_iso8601(article["createdAt"])
+      assert {:ok, _} = Date.from_iso8601(article["updatedAt"])
       assert !article["favorited"]
       assert article["favoritesCount"] == 0
 
@@ -85,6 +85,124 @@ defmodule RealWorldWeb.ArticleControllerTest do
         |> post(Routes.article_path(conn, :create_article), article: create_article_params)
 
       assert json_response(create_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+  end
+
+  describe "update article" do
+    test "returns 200 and renders article", %{
+      conn: conn,
+      article: article
+    } do
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(article.author_id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert %{"article" => updated_article} = json_response(update_article_conn, 200)
+      assert updated_article["slug"] == Slug.slugify(update_article_params.title)
+      assert updated_article["title"] == update_article_params.title
+      assert updated_article["description"] == update_article_params.description
+      assert updated_article["body"] == update_article_params.body
+      assert updated_article["tagList"] == update_article_params.tag_list
+      assert {:ok, _} = Date.from_iso8601(updated_article["createdAt"])
+      assert {:ok, _} = Date.from_iso8601(updated_article["updatedAt"])
+      assert !updated_article["favorited"]
+      assert updated_article["favoritesCount"] == 0
+
+      assert updated_article["author"] == %{
+               "username" => article.author.username,
+               "bio" => article.author.bio,
+               "image" => article.author.image,
+               "following" => false
+             }
+
+      get_article_conn =
+        conn
+        |> secure_conn(article.author_id)
+        |> get(Routes.article_path(conn, :get_article, updated_article["slug"]))
+
+      assert %{"article" => got_article} = json_response(get_article_conn, 200)
+      assert updated_article == got_article
+    end
+
+    test "returns 401 and renders errors when the token does not belong to the author", %{
+      conn: conn,
+      user1: another_user,
+      article: article
+    } do
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(another_user.id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when bearer token is not sent", %{
+      conn: conn,
+      article: article
+    } do
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when author is not found", %{
+      conn: conn,
+      article: article
+    } do
+      author_id = Faker.UUID.v4()
+
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(author_id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
                "Unauthorized"
              ]
     end
@@ -347,184 +465,5 @@ defmodule RealWorldWeb.ArticleControllerTest do
                "following" => false
              }
     end
-
-    #   test "returns 200 and renders profile when user is followed and follower is authenticated", %{
-    #     conn: conn,
-    #     follower: follower,
-    #     followed: followed
-    #   } do
-    #     follow_user_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> post(Routes.profile_path(conn, :follow_user, followed.username))
-
-    #     assert %{"profile" => profile} = json_response(follow_user_conn, 200)
-    #     assert profile["username"] == followed.username
-    #     assert profile["bio"] == followed.bio
-    #     assert profile["image"] == followed.image
-    #     assert profile["following"]
-
-    #     get_profile_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> get(Routes.profile_path(conn, :get_profile, followed.username))
-
-    #     assert %{"profile" => got_profile} = json_response(get_profile_conn, 200)
-    #     assert profile == got_profile
-    #   end
-
-    #   test "returns 200 and renders profile when user is not followed and follower is authenticated",
-    #        %{
-    #          conn: conn,
-    #          follower: follower,
-    #          followed: followed
-    #        } do
-    #     get_profile_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> get(Routes.profile_path(conn, :get_profile, followed.username))
-
-    #     assert %{"profile" => profile} = json_response(get_profile_conn, 200)
-    #     assert profile["username"] == followed.username
-    #     assert profile["bio"] == followed.bio
-    #     assert profile["image"] == followed.image
-    #     assert !profile["following"]
-    #   end
-
-    #   test "returns 200 and renders profile when follower is not found", %{
-    #     conn: conn,
-    #     followed: followed
-    #   } do
-    #     user_id = Faker.UUID.v4()
-
-    #     get_profile_conn =
-    #       conn
-    #       |> secure_conn(user_id)
-    #       |> get(Routes.profile_path(conn, :get_profile, followed.username))
-
-    #     assert %{"profile" => profile} = json_response(get_profile_conn, 200)
-    #     assert profile["username"] == followed.username
-    #     assert profile["bio"] == followed.bio
-    #     assert profile["image"] == followed.image
-    #     assert !profile["following"]
-    #   end
-
-    #   test "returns 404 and renders errors when followed is not found", %{
-    #     conn: conn
-    #   } do
-    #     followed_username = Faker.Internet.user_name()
-
-    #     get_profile_conn =
-    #       conn
-    #       |> get(Routes.profile_path(conn, :get_profile, followed_username))
-
-    #     assert json_response(get_profile_conn, 404)["errors"]["body"] == [
-    #              "Username #{followed_username} not found"
-    #            ]
-    #   end
-    # end
-
-    # describe "unfollow user" do
-    #   test "returns 200 and renders profile when user is followed", %{
-    #     conn: conn,
-    #     follower: follower,
-    #     followed: followed
-    #   } do
-    #     follow_user_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> post(Routes.profile_path(conn, :follow_user, followed.username))
-
-    #     assert %{"profile" => _} = json_response(follow_user_conn, 200)
-
-    #     unfollow_user_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> delete(Routes.profile_path(conn, :unfollow_user, followed.username))
-
-    #     assert %{"profile" => profile} = json_response(unfollow_user_conn, 200)
-    #     assert profile["username"] == followed.username
-    #     assert profile["bio"] == followed.bio
-    #     assert profile["image"] == followed.image
-    #     assert !profile["following"]
-
-    #     get_profile_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> get(Routes.profile_path(conn, :get_profile, followed.username))
-
-    #     assert %{"profile" => found_profile} = json_response(get_profile_conn, 200)
-    #     assert profile == found_profile
-    #   end
-
-    #   test "returns 200 and renders profile when user is not followed", %{
-    #     conn: conn,
-    #     follower: follower,
-    #     followed: followed
-    #   } do
-    #     unfollow_user_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> delete(Routes.profile_path(conn, :unfollow_user, followed.username))
-
-    #     assert %{"profile" => profile} = json_response(unfollow_user_conn, 200)
-    #     assert profile["username"] == followed.username
-    #     assert profile["bio"] == followed.bio
-    #     assert profile["image"] == followed.image
-    #     assert !profile["following"]
-
-    #     get_profile_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> get(Routes.profile_path(conn, :get_profile, followed.username))
-
-    #     assert %{"profile" => found_profile} = json_response(get_profile_conn, 200)
-    #     assert profile == found_profile
-    #   end
-
-    #   test "returns 401 and renders errors when bearer token is not sent", %{
-    #     conn: conn,
-    #     followed: followed
-    #   } do
-    #     follow_user_conn =
-    #       conn
-    #       |> delete(Routes.profile_path(conn, :unfollow_user, followed.username))
-
-    #     assert json_response(follow_user_conn, 401)["errors"]["body"] == [
-    #              "Unauthorized"
-    #            ]
-    #   end
-
-    #   test "returns 401 and renders errors when follower is not found", %{
-    #     conn: conn,
-    #     followed: followed
-    #   } do
-    #     user_id = Faker.UUID.v4()
-
-    #     follow_user_conn =
-    #       conn
-    #       |> secure_conn(user_id)
-    #       |> delete(Routes.profile_path(conn, :unfollow_user, followed.username))
-
-    #     assert json_response(follow_user_conn, 401)["errors"]["body"] == [
-    #              "Unauthorized"
-    #            ]
-    #   end
-
-    #   test "returns 404 and renders errors when followed is not found", %{
-    #     conn: conn,
-    #     follower: follower
-    #   } do
-    #     followed_username = Faker.Internet.user_name()
-
-    #     follow_user_conn =
-    #       conn
-    #       |> secure_conn(follower.id)
-    #       |> delete(Routes.profile_path(conn, :unfollow_user, followed_username))
-
-    #     assert json_response(follow_user_conn, 404)["errors"]["body"] == [
-    #              "Username #{followed_username} not found"
-    #            ]
-    #   end
   end
 end

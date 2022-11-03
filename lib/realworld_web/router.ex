@@ -49,6 +49,7 @@ defmodule RealWorldWeb.Router do
 
     post "/articles", ArticleController, :create_article
     post "/articles/:slug/favorite", ArticleController, :favorite_article
+    put "/articles/:slug", ArticleController, :update_article
   end
 
   scope "/api", RealWorldWeb do

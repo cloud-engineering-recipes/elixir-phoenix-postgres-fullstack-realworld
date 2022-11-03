@@ -33,8 +33,8 @@ defmodule RealWorldWeb.ArticleView do
       description: article.description,
       body: article.body,
       tagList: article.tag_list,
-      createdAt: article.inserted_at,
-      updatedAt: article.updated_at,
+      createdAt: Date.to_iso8601(article.inserted_at),
+      updatedAt: Date.to_iso8601(article.updated_at),
       favorited: is_favorited,
       favoritesCount: favorites_count,
       author: %{

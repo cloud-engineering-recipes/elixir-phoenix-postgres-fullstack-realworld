@@ -81,6 +81,34 @@ defmodule RealWorldWeb.ArticleController do
     end
   end
 
+  def update_article(conn, %{
+        "slug" => slug,
+        "article" => update_article_params
+      }) do
+    author = conn.private.guardian_default_resource
+
+    with {:ok, article} <- Articles.get_article_by_slug(slug) do
+      if author.id == article.author_id do
+        with {:ok, updated_article} <- Articles.update_article(article.id, update_article_params),
+             {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
+          render(conn, "show.json", %{
+            article: updated_article,
+            is_favorited: false,
+            favorites_count: favorites_count,
+            author: author,
+            is_following_author: false
+          })
+        end
+      else
+        Logger.error(
+          "User #{author.id} tried to update article #{article.id} from author #{article.author_id}."
+        )
+
+        {:unauthorized, "Unauthorized"}
+      end
+    end
+  end
+
   def favorite_article(conn, %{
         "slug" => slug
       }) do
