@@ -85,6 +85,84 @@ defmodule RealWorld.ArticlesTest do
     end
   end
 
+  describe "update_article/2" do
+    test "returns an article", %{article: article} do
+      update_article_attrs = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: [
+          nil,
+          "",
+          " ",
+          "lower1",
+          " lower2 ",
+          "UPPER1",
+          " UPPER2 ",
+          "mIxEd1",
+          " mIxEd2 ",
+          " mIxEd3 ! "
+        ]
+      }
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article(article.id, update_article_attrs)
+
+      assert updated_article.id == article.id
+      assert updated_article.author_id == article.author_id
+      assert updated_article.slug == Slug.slugify(update_article_attrs.title)
+      assert updated_article.title == update_article_attrs.title
+      assert updated_article.description == update_article_attrs.description
+      assert updated_article.body == update_article_attrs.body
+
+      assert updated_article.tag_list == [
+               "lower1",
+               "lower2",
+               "upper1",
+               "upper2",
+               "mixed1",
+               "mixed2",
+               "mixed3"
+             ]
+
+      with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(updated_article.id) do
+        assert updated_article == got_article
+      end
+    end
+
+    test "returns :not_found when the article is not found" do
+      article_id = Faker.UUID.v4()
+
+      update_article_attrs = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      assert {:not_found, "Article #{article_id} not found"} ==
+               Articles.update_article(article_id, update_article_attrs)
+    end
+
+    test "returns an error changeset when slug already exists", %{
+      article: article
+    } do
+      existing_article = insert(:article)
+
+      update_article_attrs = %{
+        title: existing_article.title,
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tag_list: Faker.Lorem.words()
+      }
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Articles.update_article(article.id, update_article_attrs)
+
+      assert "has already been taken" in errors_on(changeset, :slug)
+    end
+  end
+
   describe "get_article_by_id/1" do
     test "returns the article", %{article: article} do
       assert {:ok, %Article{} = got_article} = Articles.get_article_by_id(article.id)

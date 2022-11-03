@@ -4,7 +4,6 @@ defmodule RealWorldWeb.UserController do
   require Logger
 
   alias RealWorld.{Users, Users.User}
-  alias RealWorldWeb.Dtos.UserDto
 
   action_fallback(RealWorldWeb.FallbackController)
 
@@ -14,20 +13,12 @@ defmodule RealWorldWeb.UserController do
       ) do
     with {:ok, %User{} = user} <-
            Users.create_user(%{email: email, username: username, password: password}) do
-      {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
-
-      user_dto = %UserDto{
-        email: user.email,
-        username: user.username,
-        token: token,
-        bio: nil,
-        image: nil
-      }
+      {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.user_path(conn, :get_current_user))
-      |> render("show.json", %{user: user_dto})
+      |> render("show.json", %{user: user, token: token})
     end
   end
 
@@ -39,17 +30,9 @@ defmodule RealWorldWeb.UserController do
       {:ok, true} ->
         {:ok, user} = Users.get_user_by_email(email)
 
-        {:ok, token, _claims} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+        {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
-        user_dto = %UserDto{
-          email: user.email,
-          username: user.username,
-          token: token,
-          bio: user.bio,
-          image: user.image
-        }
-
-        render(conn, "show.json", %{user: user_dto})
+        render(conn, "show.json", %{user: user, token: token})
 
       error ->
         Logger.error("Logging user error! email: #{email}; error: #{inspect(error)}")
@@ -58,20 +41,12 @@ defmodule RealWorldWeb.UserController do
     end
   end
 
-  def get_current_user(conn, _params) do
+  def get_current_user(conn, _) do
     user = conn.private.guardian_default_resource
 
     token = conn.private.guardian_default_token
 
-    user_dto = %UserDto{
-      email: user.email,
-      username: user.username,
-      token: token,
-      bio: user.bio,
-      image: user.image
-    }
-
-    render(conn, "show.json", %{user: user_dto})
+    render(conn, "show.json", %{user: user, token: token})
   end
 
   def update_user(conn, %{"user" => params}) do
@@ -80,15 +55,7 @@ defmodule RealWorldWeb.UserController do
     token = conn.private.guardian_default_token
 
     with {:ok, %User{} = user} <- Users.update_user(user.id, params) do
-      user_dto = %UserDto{
-        email: user.email,
-        username: user.username,
-        token: token,
-        bio: user.bio,
-        image: user.image
-      }
-
-      render(conn, "show.json", %{user: user_dto})
+      render(conn, "show.json", %{user: user, token: token})
     end
   end
 end

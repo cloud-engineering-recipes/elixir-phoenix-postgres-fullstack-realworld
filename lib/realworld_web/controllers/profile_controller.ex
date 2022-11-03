@@ -5,7 +5,6 @@ defmodule RealWorldWeb.ProfileController do
 
   alias RealWorld.Profiles
   alias RealWorld.Users
-  alias RealWorldWeb.Dtos.ProfileDto
 
   action_fallback(RealWorldWeb.FallbackController)
 
@@ -15,15 +14,7 @@ defmodule RealWorldWeb.ProfileController do
     with {:ok, followed} <- Users.get_user_by_username(followed_username),
          {:ok, _} <-
            Profiles.follow_user(%{follower_id: follower.id, followed_id: followed.id}) do
-      profile_dto = %ProfileDto{
-        username: followed.username,
-        bio: followed.bio,
-        image: followed.image,
-        following: true
-      }
-
-      conn
-      |> render("show.json", %{profile: profile_dto})
+      render(conn, "show.json", %{user: followed, is_following: true})
     end
   end
 
@@ -46,15 +37,7 @@ defmodule RealWorldWeb.ProfileController do
           false
         end
 
-      profile_dto = %ProfileDto{
-        username: user.username,
-        bio: user.bio,
-        image: user.image,
-        following: is_following
-      }
-
-      conn
-      |> render("show.json", %{profile: profile_dto})
+      render(conn, "show.json", %{user: user, is_following: is_following})
     end
   end
 
@@ -64,15 +47,7 @@ defmodule RealWorldWeb.ProfileController do
     with {:ok, followed} <- Users.get_user_by_username(followed_username),
          {:ok, _} <-
            Profiles.unfollow_user(%{follower_id: follower.id, followed_id: followed.id}) do
-      profile_dto = %ProfileDto{
-        username: followed.username,
-        bio: followed.bio,
-        image: followed.image,
-        following: false
-      }
-
-      conn
-      |> render("show.json", %{profile: profile_dto})
+      render(conn, "show.json", %{user: followed, is_following: false})
     end
   end
 end
