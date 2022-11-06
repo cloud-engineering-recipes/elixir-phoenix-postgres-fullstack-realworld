@@ -5,17 +5,15 @@ defmodule RealWorld.Articles.Article do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias RealWorld.Users.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "articles" do
+    field :author_id, :binary_id
     field :slug, :string
     field :title, :string
     field :description, :string
     field :body, :string
     field :tag_list, {:array, :string}
-
-    belongs_to(:author, User, foreign_key: :author_id, type: :binary_id)
 
     timestamps()
   end
@@ -24,7 +22,6 @@ defmodule RealWorld.Articles.Article do
     article
     |> cast(attrs, [:author_id, :title, :description, :body, :tag_list])
     |> validate_required([:author_id, :title, :description, :body])
-    |> assoc_constraint(:author)
     |> put_slug()
     |> put_tag_list()
     |> unique_constraint([:slug])

@@ -5,18 +5,16 @@ defmodule RealWorldWeb.ProfileControllerTest do
   import RealWorld.TestUtils
 
   setup %{conn: conn} do
-    {:ok,
-     conn: put_req_header(conn, "accept", "application/json"),
-     user1: insert(:user),
-     user2: insert(:user)}
+    {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
   describe "follow user" do
     test "returns 200 and renders profile", %{
-      conn: conn,
-      user1: follower,
-      user2: followed
+      conn: conn
     } do
+      follower = insert(:user)
+      followed = insert(:user)
+
       follow_user_conn =
         conn
         |> secure_conn(follower.id)
@@ -30,9 +28,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
+      followed = insert(:user)
+
       follow_user_conn =
         conn
         |> post(Routes.profile_path(conn, :follow_user, followed.username))
@@ -43,10 +42,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 401 and renders errors when follower is not found", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
       user_id = Faker.UUID.v4()
+      followed = insert(:user)
 
       follow_user_conn =
         conn
@@ -59,9 +58,9 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 404 and renders errors when followed is not found", %{
-      conn: conn,
-      user1: follower
+      conn: conn
     } do
+      follower = insert(:user)
       followed_username = Faker.Internet.user_name()
 
       follow_user_conn =
@@ -77,9 +76,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
 
   describe "get profile" do
     test "returns 200 and renders profile when follower is not authenticated", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
+      followed = insert(:user)
+
       get_profile_conn =
         conn
         |> get(Routes.profile_path(conn, :get_profile, followed.username))
@@ -92,10 +92,11 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 200 and renders profile when user is followed and follower is authenticated", %{
-      conn: conn,
-      user1: follower,
-      user2: followed
+      conn: conn
     } do
+      follower = insert(:user)
+      followed = insert(:user)
+
       follow_user_conn =
         conn
         |> secure_conn(follower.id)
@@ -118,10 +119,11 @@ defmodule RealWorldWeb.ProfileControllerTest do
 
     test "returns 200 and renders profile when user is not followed and follower is authenticated",
          %{
-           conn: conn,
-           user1: follower,
-           user2: followed
+           conn: conn
          } do
+      follower = insert(:user)
+      followed = insert(:user)
+
       get_profile_conn =
         conn
         |> secure_conn(follower.id)
@@ -135,10 +137,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 200 and renders profile when follower is not found", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
       user_id = Faker.UUID.v4()
+      followed = insert(:user)
 
       get_profile_conn =
         conn
@@ -169,10 +171,11 @@ defmodule RealWorldWeb.ProfileControllerTest do
 
   describe "unfollow user" do
     test "returns 200 and renders profile when user is followed", %{
-      conn: conn,
-      user1: follower,
-      user2: followed
+      conn: conn
     } do
+      follower = insert(:user)
+      followed = insert(:user)
+
       follow_user_conn =
         conn
         |> secure_conn(follower.id)
@@ -201,10 +204,11 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 200 and renders profile when user is not followed", %{
-      conn: conn,
-      user1: follower,
-      user2: followed
+      conn: conn
     } do
+      follower = insert(:user)
+      followed = insert(:user)
+
       unfollow_user_conn =
         conn
         |> secure_conn(follower.id)
@@ -226,9 +230,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
+      followed = insert(:user)
+
       follow_user_conn =
         conn
         |> delete(Routes.profile_path(conn, :unfollow_user, followed.username))
@@ -239,10 +244,10 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 401 and renders errors when follower is not found", %{
-      conn: conn,
-      user2: followed
+      conn: conn
     } do
       user_id = Faker.UUID.v4()
+      followed = insert(:user)
 
       follow_user_conn =
         conn
@@ -255,9 +260,9 @@ defmodule RealWorldWeb.ProfileControllerTest do
     end
 
     test "returns 404 and renders errors when followed is not found", %{
-      conn: conn,
-      user1: follower
+      conn: conn
     } do
+      follower = insert(:user)
       followed_username = Faker.Internet.user_name()
 
       follow_user_conn =

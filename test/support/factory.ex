@@ -17,16 +17,31 @@ defmodule RealWorld.Factory do
     }
   end
 
-  def article_factory do
+  def article_factory(attrs) do
+    author =
+      if Map.has_key?(attrs, :author) do
+        attrs.author
+      else
+        insert(:user)
+      end
+
+    inserted_at =
+      if Map.has_key?(attrs, :inserted_at) do
+        attrs.inserted_at
+      else
+        nil
+      end
+
     title = Faker.Lorem.sentence()
 
     %RealWorld.Articles.Article{
+      author_id: author.id,
       title: title,
       slug: Slug.slugify(title),
       description: Faker.Lorem.sentence(),
       body: Faker.Lorem.paragraph(),
       tag_list: ["tag1", "tag2"],
-      author: build(:user)
+      inserted_at: inserted_at
     }
   end
 end

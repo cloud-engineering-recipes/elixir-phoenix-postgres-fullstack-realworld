@@ -5,18 +5,15 @@ defmodule RealWorldWeb.ArticleControllerTest do
   import RealWorld.TestUtils
 
   setup %{conn: conn} do
-    {:ok,
-     conn: put_req_header(conn, "accept", "application/json"),
-     user1: insert(:user),
-     user2: insert(:user),
-     article: insert(:article)}
+    {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
   describe "create article" do
     test "returns 201 and renders article", %{
-      conn: conn,
-      user1: author
+      conn: conn
     } do
+      author = insert(:user)
+
       create_article_params = %{
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
@@ -92,9 +89,11 @@ defmodule RealWorldWeb.ArticleControllerTest do
 
   describe "update article" do
     test "returns 200 and renders article", %{
-      conn: conn,
-      article: article
+      conn: conn
     } do
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       update_article_params = %{
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
@@ -104,7 +103,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
 
       update_article_conn =
         conn
-        |> secure_conn(article.author_id)
+        |> secure_conn(author.id)
         |> put(Routes.article_path(conn, :update_article, article.slug),
           article: update_article_params
         )
@@ -121,15 +120,15 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert updated_article["favoritesCount"] == 0
 
       assert updated_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => false
              }
 
       get_article_conn =
         conn
-        |> secure_conn(article.author_id)
+        |> secure_conn(author.id)
         |> get(Routes.article_path(conn, :get_article, updated_article["slug"]))
 
       assert %{"article" => got_article} = json_response(get_article_conn, 200)
@@ -137,10 +136,11 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
 
     test "returns 401 and renders errors when the token does not belong to the author", %{
-      conn: conn,
-      user1: another_user,
-      article: article
+      conn: conn
     } do
+      another_user = insert(:user)
+      article = insert(:article)
+
       update_article_params = %{
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
@@ -161,9 +161,10 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
 
     test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn,
-      article: article
+      conn: conn
     } do
+      article = insert(:article)
+
       update_article_params = %{
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
@@ -183,9 +184,10 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
 
     test "returns 401 and renders errors when author is not found", %{
-      conn: conn,
-      article: article
+      conn: conn
     } do
+      article = insert(:article)
+
       author_id = Faker.UUID.v4()
 
       update_article_params = %{
@@ -210,11 +212,13 @@ defmodule RealWorldWeb.ArticleControllerTest do
 
   describe "favorite article" do
     test "returns 200 and renders article", %{
-      conn: conn,
-      user1: user1,
-      user2: user2,
-      article: article
+      conn: conn
     } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       user_1_favorite_article_conn =
         conn
         |> secure_conn(user1.id)
@@ -232,9 +236,9 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["favoritesCount"] == 1
 
       assert user_1_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => false
              }
 
@@ -252,9 +256,10 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
 
     test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn,
-      article: article
+      conn: conn
     } do
+      article = insert(:article)
+
       favorite_article_conn =
         conn
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
@@ -265,9 +270,10 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
 
     test "returns 401 and renders errors when author is not found", %{
-      conn: conn,
-      article: article
+      conn: conn
     } do
+      article = insert(:article)
+
       author_id = Faker.UUID.v4()
 
       favorite_article_conn =
@@ -283,11 +289,13 @@ defmodule RealWorldWeb.ArticleControllerTest do
 
   describe "get article" do
     test "returns 200 and renders article when article is favorited and author is followed", %{
-      conn: conn,
-      user1: user1,
-      user2: user2,
-      article: article
+      conn: conn
     } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       user_2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
@@ -305,7 +313,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       user_1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
-        |> post(Routes.profile_path(conn, :follow_user, article.author.username))
+        |> post(Routes.profile_path(conn, :follow_user, author.username))
 
       assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
 
@@ -326,20 +334,22 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["favoritesCount"] == 2
 
       assert user_1_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => true
              }
     end
 
     test "returns 200 and renders article when article is not favorited and author is followed",
          %{
-           conn: conn,
-           user1: user1,
-           user2: user2,
-           article: article
+           conn: conn
          } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       user_2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
@@ -350,7 +360,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       user_1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
-        |> post(Routes.profile_path(conn, :follow_user, article.author.username))
+        |> post(Routes.profile_path(conn, :follow_user, author.username))
 
       assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
 
@@ -371,20 +381,22 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["favoritesCount"] == 1
 
       assert user_1_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => true
              }
     end
 
     test "returns 200 and renders article when article is not favorited and author is not followed",
          %{
-           conn: conn,
-           user1: user1,
-           user2: user2,
-           article: article
+           conn: conn
          } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       user_2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
@@ -409,19 +421,21 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["favoritesCount"] == 1
 
       assert user_1_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => false
              }
     end
 
     test "returns 200 and renders article when user is not authenticated", %{
-      conn: conn,
-      user1: user1,
-      user2: user2,
-      article: article
+      conn: conn
     } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       user_2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
@@ -439,7 +453,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       user_1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
-        |> post(Routes.profile_path(conn, :follow_user, article.author.username))
+        |> post(Routes.profile_path(conn, :follow_user, author.username))
 
       assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
 
@@ -459,9 +473,9 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert got_article["favoritesCount"] == 2
 
       assert got_article["author"] == %{
-               "username" => article.author.username,
-               "bio" => article.author.bio,
-               "image" => article.author.image,
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
                "following" => false
              }
     end

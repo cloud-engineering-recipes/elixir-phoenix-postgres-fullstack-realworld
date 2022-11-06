@@ -5,12 +5,10 @@ defmodule RealWorld.ArticlesTest do
   import RealWorld.TestUtils
   alias RealWorld.{Articles, Articles.Article}
 
-  setup do
-    {:ok, user1: insert(:user), user2: insert(:user), article: insert(:article)}
-  end
-
   describe "create_article/1" do
-    test "returns an article", %{user1: author} do
+    test "returns an article" do
+      author = insert(:user)
+
       create_article_attrs = %{
         author_id: author.id,
         title: " My Awesome Article! It is really good! ",
@@ -66,10 +64,10 @@ defmodule RealWorld.ArticlesTest do
                Articles.create_article(create_article_attrs)
     end
 
-    test "returns an error changeset when slug already exists", %{
-      user1: author,
-      article: article
-    } do
+    test "returns an error changeset when slug already exists" do
+      author = insert(:user)
+      article = insert(:article)
+
       create_article_attrs = %{
         author_id: author.id,
         title: article.title,
@@ -86,7 +84,10 @@ defmodule RealWorld.ArticlesTest do
   end
 
   describe "update_article/2" do
-    test "returns an article", %{article: article} do
+    test "returns an article" do
+      author = insert(:user)
+      article = insert(:article, author: author)
+
       update_article_attrs = %{
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
@@ -144,10 +145,9 @@ defmodule RealWorld.ArticlesTest do
                Articles.update_article(article_id, update_article_attrs)
     end
 
-    test "returns an error changeset when slug already exists", %{
-      article: article
-    } do
+    test "returns an error changeset when slug already exists" do
       existing_article = insert(:article)
+      article = insert(:article)
 
       update_article_attrs = %{
         title: existing_article.title,
@@ -164,9 +164,11 @@ defmodule RealWorld.ArticlesTest do
   end
 
   describe "get_article_by_id/1" do
-    test "returns the article", %{article: article} do
+    test "returns the article" do
+      article = insert(:article)
+
       assert {:ok, %Article{} = got_article} = Articles.get_article_by_id(article.id)
-      assert Map.delete(got_article, :author) == Map.delete(article, :author)
+      assert got_article == article
     end
 
     test "returns :not_found when the article is not found" do
@@ -178,9 +180,11 @@ defmodule RealWorld.ArticlesTest do
   end
 
   describe "get_article_by_slug/1" do
-    test "returns the article", %{article: article} do
+    test "returns the article" do
+      article = insert(:article)
+
       assert {:ok, %Article{} = got_article} = Articles.get_article_by_slug(article.slug)
-      assert Map.delete(got_article, :author) == Map.delete(article, :author)
+      assert got_article == article
     end
 
     test "returns :not_found when the article is not found" do
@@ -191,8 +195,32 @@ defmodule RealWorld.ArticlesTest do
     end
   end
 
+  describe "list_articles/1" do
+    test "returns articles ordered by most recent when given no filters" do
+      article1 = insert(:article, inserted_at: Faker.DateTime.backward(1))
+      article2 = insert(:article)
+
+      assert {:ok, articles} = Articles.list_articles()
+
+      assert articles == [article2, article1]
+    end
+
+    test "returns articles when given author_id filter" do
+      author = insert(:user)
+      article1 = insert(:article, author: author, inserted_at: Faker.DateTime.backward(1))
+      article2 = insert(:article, author: author)
+      insert(:article)
+
+      assert {:ok, articles} = Articles.list_articles(author_id: author.id)
+      assert articles == [article2, article1]
+    end
+  end
+
   describe "favorite_article/1" do
-    test "favorites an article", %{user1: user, article: article} do
+    test "favorites an article" do
+      user = insert(:user)
+      article = insert(:article)
+
       assert {:ok, false} == Articles.is_favorited?(%{user_id: user.id, article_id: article.id})
 
       assert {:ok, nil} == Articles.favorite_article(%{user_id: user.id, article_id: article.id})
@@ -200,14 +228,17 @@ defmodule RealWorld.ArticlesTest do
       assert {:ok, true} == Articles.is_favorited?(%{user_id: user.id, article_id: article.id})
     end
 
-    test "returns :not_found when the user is not found", %{article: article} do
+    test "returns :not_found when the user is not found" do
       user_id = Faker.UUID.v4()
+      article = insert(:article)
 
       assert {:not_found, "User #{user_id} not found"} ==
                Articles.favorite_article(%{user_id: user_id, article_id: article.id})
     end
 
-    test "returns :not_found when the article is not found", %{user1: user} do
+    test "returns :not_found when the article is not found" do
+      user = insert(:user)
+
       article_id = Faker.UUID.v4()
 
       assert {:not_found, "Article #{article_id} not found"} ==
@@ -216,7 +247,11 @@ defmodule RealWorld.ArticlesTest do
   end
 
   describe "get_favorites_count/1" do
-    test "returns the favorites count", %{user1: user1, user2: user2, article: article} do
+    test "returns the favorites count" do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      article = insert(:article)
+
       assert {:ok, 0} == Articles.get_favorites_count(article.id)
 
       assert {:ok, nil} == Articles.favorite_article(%{user_id: user1.id, article_id: article.id})
@@ -228,7 +263,10 @@ defmodule RealWorld.ArticlesTest do
       assert {:ok, 2} == Articles.get_favorites_count(article.id)
     end
 
-    test "does nothing when the article is already favorited", %{user1: user, article: article} do
+    test "does nothing when the article is already favorited" do
+      user = insert(:user)
+      article = insert(:article)
+
       assert {:ok, nil} == Articles.favorite_article(%{user_id: user.id, article_id: article.id})
 
       assert {:ok, 1} == Articles.get_favorites_count(article.id)

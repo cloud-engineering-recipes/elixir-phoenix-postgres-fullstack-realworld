@@ -5,10 +5,6 @@ defmodule RealWorld.UsersTest do
   import RealWorld.TestUtils
   alias RealWorld.{Users, Users.User}
 
-  setup do
-    {:ok, user: insert(:user)}
-  end
-
   describe "create_user/1" do
     test "creates and returns an user" do
       create_user_attrs = %{
@@ -46,7 +42,9 @@ defmodule RealWorld.UsersTest do
       assert "has invalid format" in errors_on(changeset, :email)
     end
 
-    test "returns an error changeset when email is already taken", %{user: existing_user} do
+    test "returns an error changeset when email is already taken" do
+      existing_user = insert(:user)
+
       create_user_attrs = %{
         email: existing_user.email,
         username: Faker.Internet.user_name(),
@@ -58,7 +56,9 @@ defmodule RealWorld.UsersTest do
       assert "has already been taken" in errors_on(changeset, :email)
     end
 
-    test "returns an error changeset when username is already taken", %{user: existing_user} do
+    test "returns an error changeset when username is already taken" do
+      existing_user = insert(:user)
+
       create_user_attrs = %{
         email: Faker.Internet.email(),
         username: existing_user.username,
@@ -84,8 +84,9 @@ defmodule RealWorld.UsersTest do
   end
 
   describe "get_user_by_id/1" do
-    test "returns the user",
-         %{user: user} do
+    test "returns the user" do
+      user = insert(:user)
+
       with {:ok, %User{} = found_user} <- Users.get_user_by_id(user.id) do
         assert found_user == %{user | password: nil}
       end
@@ -100,8 +101,9 @@ defmodule RealWorld.UsersTest do
   end
 
   describe "get_user_by_email/1" do
-    test "returns the user",
-         %{user: user} do
+    test "returns the user" do
+      user = insert(:user)
+
       with {:ok, %User{} = found_user} <- Users.get_user_by_email(user.email) do
         assert found_user == %{user | password: nil}
       end
@@ -116,8 +118,9 @@ defmodule RealWorld.UsersTest do
   end
 
   describe "get_user_by_username/1" do
-    test "returns the user",
-         %{user: user} do
+    test "returns the user" do
+      user = insert(:user)
+
       with {:ok, %User{} = found_user} <- Users.get_user_by_username(user.username) do
         assert found_user == %{user | password: nil}
       end
@@ -132,9 +135,9 @@ defmodule RealWorld.UsersTest do
   end
 
   describe "update_user/2" do
-    test "updates and returns the user", %{
-      user: user
-    } do
+    test "updates and returns the user" do
+      user = insert(:user)
+
       update_user_attrs = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),
@@ -155,7 +158,9 @@ defmodule RealWorld.UsersTest do
       end
     end
 
-    test "returns an error changeset when email is invalid", %{user: user} do
+    test "returns an error changeset when email is invalid" do
+      user = insert(:user)
+
       update_user_attrs = %{
         email: "invalid"
       }
@@ -166,8 +171,9 @@ defmodule RealWorld.UsersTest do
       assert "has invalid format" in errors_on(changeset, :email)
     end
 
-    test "returns an error changeset when email is already taken", %{user: existing_user} do
+    test "returns an error changeset when email is already taken" do
       user = insert(:user)
+      existing_user = insert(:user)
 
       update_user_attrs = %{
         email: existing_user.email
@@ -179,8 +185,9 @@ defmodule RealWorld.UsersTest do
       assert "has already been taken" in errors_on(changeset, :email)
     end
 
-    test "returns an error changeset when username is already taken", %{user: existing_user} do
+    test "returns an error changeset when username is already taken" do
       user = insert(:user)
+      existing_user = insert(:user)
 
       update_user_attrs = %{
         username: existing_user.username
@@ -192,9 +199,9 @@ defmodule RealWorld.UsersTest do
       assert "has already been taken" in errors_on(changeset, :username)
     end
 
-    test "returns an error changeset when password contains less than 8 characters", %{
-      user: user
-    } do
+    test "returns an error changeset when password contains less than 8 characters" do
+      user = insert(:user)
+
       update_user_attrs = %{
         password: List.to_string(Faker.Lorem.characters(1..7))
       }
@@ -222,9 +229,9 @@ defmodule RealWorld.UsersTest do
       assert password_matches
     end
 
-    test "returns false when password doesn't match", %{
-      user: user
-    } do
+    test "returns false when password doesn't match" do
+      user = insert(:user)
+
       password = List.to_string(Faker.Lorem.characters())
 
       assert {:ok, password_matches} = Users.verify_password_by_email(user.email, password)

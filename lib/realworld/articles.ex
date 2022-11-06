@@ -41,6 +41,30 @@ defmodule RealWorld.Articles do
     end
   end
 
+  def list_articles(params \\ %{}) do
+    with articles <-
+           Article
+           |> where(^filter_articles_where(params))
+           |> order_by(^filter_articles_order_by(params[:order_by]))
+           |> Repo.all() do
+      {:ok, articles}
+    end
+  end
+
+  defp filter_articles_where(params) do
+    Enum.reduce(params, dynamic(true), fn
+      {:author_id, value}, dynamic ->
+        dynamic([a], ^dynamic and a.author_id == ^value)
+
+      {_, _}, dynamic ->
+        # Not a where parameter
+        dynamic
+    end)
+  end
+
+  defp filter_articles_order_by(_),
+    do: [desc: dynamic([a], a.inserted_at)]
+
   def update_article(article_id, attrs) do
     with {:ok, article} <- get_article_by_id(article_id) do
       article
