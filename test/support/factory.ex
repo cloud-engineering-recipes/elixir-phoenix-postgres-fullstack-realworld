@@ -47,14 +47,21 @@ defmodule RealWorld.Factory do
       slug: Slug.slugify(title),
       description: Faker.Lorem.sentence(),
       body: Faker.Lorem.paragraph(),
-      tags: Enum.map(tags, fn name -> build(:tag, name: name) end),
+      tags: tags,
       inserted_at: inserted_at
     }
   end
 
   def tag_factory(attrs) do
+    name =
+      if Map.has_key?(attrs, :name) do
+        attrs.name
+      else
+        Faker.Lorem.word()
+      end
+
     %RealWorld.Articles.Tag{
-      name: attrs.name
+      name: name
     }
   end
 end

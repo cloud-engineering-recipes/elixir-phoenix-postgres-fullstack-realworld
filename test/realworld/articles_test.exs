@@ -205,6 +205,20 @@ defmodule RealWorld.ArticlesTest do
       assert articles == [article2, article1]
     end
 
+    test "returns articles when given tag filter" do
+      tag1 = insert(:tag, name: "tag1")
+      tag2 = insert(:tag, name: "tag2")
+
+      article1 = insert(:article, tags: [tag1], inserted_at: Faker.DateTime.backward(1))
+      article2 = insert(:article, tags: [tag1])
+      article3 = insert(:article, tags: [tag1, tag2], inserted_at: Faker.DateTime.backward(2))
+      _article4 = insert(:article, tags: [tag2], inserted_at: Faker.DateTime.backward(1))
+      _article5 = insert(:article, tags: [tag2])
+
+      assert {:ok, articles} = Articles.list_articles(%{tag: tag1.name})
+      assert articles == [article2, article1, article3]
+    end
+
     test "returns articles when given author_id filter" do
       author = insert(:user)
       article1 = insert(:article, author: author, inserted_at: Faker.DateTime.backward(1))

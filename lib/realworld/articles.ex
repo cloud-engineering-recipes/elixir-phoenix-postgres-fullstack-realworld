@@ -38,16 +38,20 @@ defmodule RealWorld.Articles do
   def list_articles(attrs \\ %{}) do
     with articles <-
            Article
+           |> join(:left, [a], assoc(a, :tags), as: :tags)
            |> where(^filter_articles_where(attrs))
            |> order_by(^filter_articles_order_by(attrs[:order_by]))
            |> Repo.all()
-           |> Repo.preload([[:tags]]) do
+           |> Repo.preload([:tags]) do
       {:ok, articles}
     end
   end
 
   defp filter_articles_where(attrs) do
     Enum.reduce(attrs, dynamic(true), fn
+      {:tag, value}, dynamic ->
+        dynamic([tags: t], ^dynamic and t.name == ^value)
+
       {:author_id, value}, dynamic ->
         dynamic([a], ^dynamic and a.author_id == ^value)
 

@@ -5,10 +5,13 @@ defmodule RealWorld.Articles.Tag do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias RealWorld.Articles.Article
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "tags" do
     field :name, :string
+
+    many_to_many :articles, Article, join_through: "articles_tags"
 
     timestamps()
   end
