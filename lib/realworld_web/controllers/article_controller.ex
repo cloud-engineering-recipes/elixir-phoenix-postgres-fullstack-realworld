@@ -12,7 +12,7 @@ defmodule RealWorldWeb.ArticleController do
           "title" => title,
           "description" => description,
           "body" => body,
-          "tag_list" => tag_list
+          "tagList" => tags
         }
       }) do
     author = conn.private.guardian_default_resource
@@ -23,7 +23,7 @@ defmodule RealWorldWeb.ArticleController do
              title: title,
              description: description,
              body: body,
-             tag_list: tag_list
+             tags: tags
            }
            |> Articles.create_article(),
          {:ok, author} <- Users.get_user_by_id(author.id) do
@@ -40,21 +40,31 @@ defmodule RealWorldWeb.ArticleController do
     end
   end
 
-  def get_article(conn, %{"slug" => slug}) do
-    user_id =
-      if Map.has_key?(conn.private, :guardian_default_resource) do
-        conn.private.guardian_default_resource.id
-      else
-        nil
-      end
+  def create_article(conn, %{
+        "article" =>
+          %{
+            "title" => _title,
+            "description" => _description,
+            "body" => _body
+          } = create_article_params
+      }) do
+    create_article(conn, Map.put(create_article_params, "tagList", []))
+  end
 
+  def get_article(conn, %{"slug" => slug}) do
     with {:ok, article} <- Articles.get_article_by_slug(slug),
          {:ok, author} <- Users.get_user_by_id(article.author_id),
          {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
+      user_id =
+        if Map.has_key?(conn.private, :guardian_default_resource) do
+          conn.private.guardian_default_resource.id
+        else
+          nil
+        end
+
       is_favorited =
         if user_id != nil do
-          {:ok, is_favorited} =
-            Articles.is_favorited?(%{user_id: user_id, article_id: article.id})
+          {:ok, is_favorited} = Articles.is_favorited?(user_id, article.id)
 
           is_favorited
         else
@@ -63,8 +73,7 @@ defmodule RealWorldWeb.ArticleController do
 
       is_following_author =
         if user_id != nil do
-          {:ok, is_following_author} =
-            Profiles.is_following?(%{follower_id: user_id, followed_id: article.author_id})
+          {:ok, is_following_author} = Profiles.is_following?(user_id, article.author_id)
 
           is_following_author
         else
@@ -89,7 +98,11 @@ defmodule RealWorldWeb.ArticleController do
 
     with {:ok, article} <- Articles.get_article_by_slug(slug) do
       if author.id == article.author_id do
-        with {:ok, updated_article} <- Articles.update_article(article.id, update_article_params),
+        with {:ok, updated_article} <-
+               Articles.update_article(
+                 article.id,
+                 update_article_params |> Map.put("tags", update_article_params["tagList"] || [])
+               ),
              {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
           render(conn, "show.json", %{
             article: updated_article,
@@ -115,10 +128,9 @@ defmodule RealWorldWeb.ArticleController do
     user = conn.private.guardian_default_resource
 
     with {:ok, article} <- Articles.get_article_by_slug(slug),
-         {:ok, _} <- Articles.favorite_article(%{user_id: user.id, article_id: article.id}),
+         {:ok, _} <- Articles.favorite_article(user.id, article.id),
          {:ok, author} <- Users.get_user_by_id(article.author_id) do
-      {:ok, is_following_author} =
-        Profiles.is_following?(%{follower_id: user.id, followed_id: article.author_id})
+      {:ok, is_following_author} = Profiles.is_following?(user.id, article.author_id)
 
       {:ok, favorites_count} = Articles.get_favorites_count(article.id)
 

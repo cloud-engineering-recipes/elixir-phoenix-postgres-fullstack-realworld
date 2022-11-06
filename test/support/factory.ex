@@ -25,6 +25,13 @@ defmodule RealWorld.Factory do
         insert(:user)
       end
 
+    tags =
+      if Map.has_key?(attrs, :tags) do
+        attrs.tags
+      else
+        []
+      end
+
     inserted_at =
       if Map.has_key?(attrs, :inserted_at) do
         attrs.inserted_at
@@ -40,8 +47,14 @@ defmodule RealWorld.Factory do
       slug: Slug.slugify(title),
       description: Faker.Lorem.sentence(),
       body: Faker.Lorem.paragraph(),
-      tag_list: ["tag1", "tag2"],
+      tags: Enum.map(tags, fn name -> build(:tag, name: name) end),
       inserted_at: inserted_at
+    }
+  end
+
+  def tag_factory(attrs) do
+    %RealWorld.Articles.Tag{
+      name: attrs.name
     }
   end
 end

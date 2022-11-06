@@ -32,7 +32,7 @@ defmodule RealWorldWeb.ArticleView do
       title: article.title,
       description: article.description,
       body: article.body,
-      tagList: article.tag_list,
+      tagList: article.tags |> Enum.map(fn tag -> tag.name end),
       createdAt: Date.to_iso8601(article.inserted_at),
       updatedAt: Date.to_iso8601(article.updated_at),
       favorited: is_favorited,

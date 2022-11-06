@@ -8,7 +8,7 @@ defmodule RealWorld.Users do
   alias RealWorld.Repo
   alias RealWorld.Users.User
 
-  def create_user(%{email: _email, username: _username, password: _password} = attrs) do
+  def create_user(attrs) do
     %User{}
     |> User.creation_changeset(attrs)
     |> User.changeset(attrs)

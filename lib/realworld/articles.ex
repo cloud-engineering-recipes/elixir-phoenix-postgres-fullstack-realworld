@@ -11,48 +11,43 @@ defmodule RealWorld.Articles do
   alias RealWorld.Repo
   alias RealWorld.Users
 
-  def create_article(
-        %{
-          author_id: author_id,
-          title: _title,
-          description: _description,
-          body: _body,
-          tag_list: _tag_list
-        } = attrs
-      ) do
-    with {:ok, _} <- Users.get_user_by_id(author_id) do
-      %Article{}
-      |> Article.changeset(attrs)
-      |> Repo.insert()
+  def create_article(attrs) when is_map_key(attrs, :author_id) do
+    with {:ok, _} <- Users.get_user_by_id(attrs.author_id),
+         {:ok, article} <-
+           %Article{}
+           |> Article.changeset(attrs)
+           |> Repo.insert() do
+      {:ok, Repo.preload(article, [:tags])}
     end
   end
 
   def get_article_by_id(article_id) do
-    case Repo.get(Article, article_id) do
+    case Repo.get(Article, article_id) |> Repo.preload([:tags]) do
       nil -> {:not_found, "Article #{article_id} not found"}
       article -> {:ok, article}
     end
   end
 
   def get_article_by_slug(slug) do
-    case Repo.get_by(Article, slug: slug) do
+    case Repo.get_by(Article, slug: slug) |> Repo.preload([:tags]) do
       nil -> {:not_found, "Slug #{slug} not found"}
       article -> {:ok, article}
     end
   end
 
-  def list_articles(params \\ %{}) do
+  def list_articles(attrs \\ %{}) do
     with articles <-
            Article
-           |> where(^filter_articles_where(params))
-           |> order_by(^filter_articles_order_by(params[:order_by]))
-           |> Repo.all() do
+           |> where(^filter_articles_where(attrs))
+           |> order_by(^filter_articles_order_by(attrs[:order_by]))
+           |> Repo.all()
+           |> Repo.preload([[:tags]]) do
       {:ok, articles}
     end
   end
 
-  defp filter_articles_where(params) do
-    Enum.reduce(params, dynamic(true), fn
+  defp filter_articles_where(attrs) do
+    Enum.reduce(attrs, dynamic(true), fn
       {:author_id, value}, dynamic ->
         dynamic([a], ^dynamic and a.author_id == ^value)
 
@@ -66,15 +61,19 @@ defmodule RealWorld.Articles do
     do: [desc: dynamic([a], a.inserted_at)]
 
   def update_article(article_id, attrs) do
-    with {:ok, article} <- get_article_by_id(article_id) do
-      article
-      |> Article.changeset(attrs)
-      |> Repo.update()
+    with {:ok, article} <- get_article_by_id(article_id),
+         {:ok, updated_article} <-
+           article
+           |> Article.changeset(attrs)
+           |> Repo.update() do
+      {:ok,
+       updated_article
+       |> Repo.preload([:tags])}
     end
   end
 
-  def favorite_article(%{user_id: user_id, article_id: article_id}) do
-    with {:ok, is_favorited} <- is_favorited?(%{user_id: user_id, article_id: article_id}) do
+  def favorite_article(user_id, article_id) do
+    with {:ok, is_favorited} <- is_favorited?(user_id, article_id) do
       if is_favorited do
         {:ok, nil}
       else
@@ -88,7 +87,7 @@ defmodule RealWorld.Articles do
     end
   end
 
-  def is_favorited?(%{user_id: user_id, article_id: article_id}) do
+  def is_favorited?(user_id, article_id) do
     with {:ok, user} <- Users.get_user_by_id(user_id),
          {:ok, article} <- get_article_by_id(article_id) do
       case Repo.get_by(Favorite, user_id: user.id, article_id: article.id) do

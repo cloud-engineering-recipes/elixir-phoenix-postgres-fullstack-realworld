@@ -18,7 +18,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       create_article_conn =
@@ -31,7 +31,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert article["title"] == create_article_params.title
       assert article["description"] == create_article_params.description
       assert article["body"] == create_article_params.body
-      assert article["tagList"] == create_article_params.tag_list
+      assert article["tagList"] == create_article_params.tagList
       assert {:ok, _} = Date.from_iso8601(article["createdAt"])
       assert {:ok, _} = Date.from_iso8601(article["updatedAt"])
       assert !article["favorited"]
@@ -52,7 +52,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       create_article_conn =
@@ -73,7 +73,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       create_article_conn =
@@ -98,7 +98,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       update_article_conn =
@@ -113,7 +113,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert updated_article["title"] == update_article_params.title
       assert updated_article["description"] == update_article_params.description
       assert updated_article["body"] == update_article_params.body
-      assert updated_article["tagList"] == update_article_params.tag_list
+      assert updated_article["tagList"] == update_article_params.tagList
       assert {:ok, _} = Date.from_iso8601(updated_article["createdAt"])
       assert {:ok, _} = Date.from_iso8601(updated_article["updatedAt"])
       assert !updated_article["favorited"]
@@ -145,7 +145,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       update_article_conn =
@@ -169,7 +169,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       update_article_conn =
@@ -194,7 +194,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tagList: Faker.Lorem.words()
       }
 
       update_article_conn =
@@ -229,7 +229,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["title"] == article.title
       assert user_1_article["description"] == article.description
       assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tag_list
+      assert user_1_article["tagList"] == article.tags
       assert user_1_article["createdAt"] != nil
       assert user_1_article["updatedAt"] != nil
       assert user_1_article["favorited"]
@@ -327,7 +327,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["title"] == article.title
       assert user_1_article["description"] == article.description
       assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tag_list
+      assert user_1_article["tagList"] == article.tags
       assert user_1_article["createdAt"] != nil
       assert user_1_article["updatedAt"] != nil
       assert user_1_article["favorited"]
@@ -374,7 +374,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["title"] == article.title
       assert user_1_article["description"] == article.description
       assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tag_list
+      assert user_1_article["tagList"] == article.tags
       assert user_1_article["createdAt"] != nil
       assert user_1_article["updatedAt"] != nil
       assert !user_1_article["favorited"]
@@ -414,7 +414,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user_1_article["title"] == article.title
       assert user_1_article["description"] == article.description
       assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tag_list
+      assert user_1_article["tagList"] == article.tags
       assert user_1_article["createdAt"] != nil
       assert user_1_article["updatedAt"] != nil
       assert !user_1_article["favorited"]
@@ -466,7 +466,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert got_article["title"] == article.title
       assert got_article["description"] == article.description
       assert got_article["body"] == article.body
-      assert got_article["tagList"] == article.tag_list
+      assert got_article["tagList"] == article.tags
       assert got_article["createdAt"] != nil
       assert got_article["updatedAt"] != nil
       assert !got_article["favorited"]

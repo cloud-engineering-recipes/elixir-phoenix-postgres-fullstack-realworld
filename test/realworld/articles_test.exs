@@ -14,7 +14,7 @@ defmodule RealWorld.ArticlesTest do
         title: " My Awesome Article! It is really good! ",
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: [
+        tags: [
           nil,
           "",
           " ",
@@ -36,7 +36,7 @@ defmodule RealWorld.ArticlesTest do
       assert article.description == create_article_attrs.description
       assert article.body == create_article_attrs.body
 
-      assert article.tag_list == [
+      assert article.tags |> Enum.map(fn tag -> tag.name end) == [
                "lower1",
                "lower2",
                "upper1",
@@ -57,7 +57,7 @@ defmodule RealWorld.ArticlesTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tags: Faker.Lorem.words()
       }
 
       assert {:not_found, "User #{create_article_attrs.author_id} not found"} ==
@@ -73,7 +73,7 @@ defmodule RealWorld.ArticlesTest do
         title: article.title,
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tags: Faker.Lorem.words()
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
@@ -92,7 +92,7 @@ defmodule RealWorld.ArticlesTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: [
+        tags: [
           nil,
           "",
           " ",
@@ -116,7 +116,7 @@ defmodule RealWorld.ArticlesTest do
       assert updated_article.description == update_article_attrs.description
       assert updated_article.body == update_article_attrs.body
 
-      assert updated_article.tag_list == [
+      assert updated_article.tags |> Enum.map(fn tag -> tag.name end) == [
                "lower1",
                "lower2",
                "upper1",
@@ -138,7 +138,7 @@ defmodule RealWorld.ArticlesTest do
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tags: Faker.Lorem.words()
       }
 
       assert {:not_found, "Article #{article_id} not found"} ==
@@ -153,7 +153,7 @@ defmodule RealWorld.ArticlesTest do
         title: existing_article.title,
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
-        tag_list: Faker.Lorem.words()
+        tags: Faker.Lorem.words()
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
@@ -211,7 +211,7 @@ defmodule RealWorld.ArticlesTest do
       article2 = insert(:article, author: author)
       insert(:article)
 
-      assert {:ok, articles} = Articles.list_articles(author_id: author.id)
+      assert {:ok, articles} = Articles.list_articles(%{author_id: author.id})
       assert articles == [article2, article1]
     end
   end
@@ -221,11 +221,11 @@ defmodule RealWorld.ArticlesTest do
       user = insert(:user)
       article = insert(:article)
 
-      assert {:ok, false} == Articles.is_favorited?(%{user_id: user.id, article_id: article.id})
+      assert {:ok, false} == Articles.is_favorited?(user.id, article.id)
 
-      assert {:ok, nil} == Articles.favorite_article(%{user_id: user.id, article_id: article.id})
+      assert {:ok, nil} == Articles.favorite_article(user.id, article.id)
 
-      assert {:ok, true} == Articles.is_favorited?(%{user_id: user.id, article_id: article.id})
+      assert {:ok, true} == Articles.is_favorited?(user.id, article.id)
     end
 
     test "returns :not_found when the user is not found" do
@@ -233,7 +233,7 @@ defmodule RealWorld.ArticlesTest do
       article = insert(:article)
 
       assert {:not_found, "User #{user_id} not found"} ==
-               Articles.favorite_article(%{user_id: user_id, article_id: article.id})
+               Articles.favorite_article(user_id, article.id)
     end
 
     test "returns :not_found when the article is not found" do
@@ -242,7 +242,7 @@ defmodule RealWorld.ArticlesTest do
       article_id = Faker.UUID.v4()
 
       assert {:not_found, "Article #{article_id} not found"} ==
-               Articles.favorite_article(%{user_id: user.id, article_id: article_id})
+               Articles.favorite_article(user.id, article_id)
     end
   end
 
@@ -254,11 +254,11 @@ defmodule RealWorld.ArticlesTest do
 
       assert {:ok, 0} == Articles.get_favorites_count(article.id)
 
-      assert {:ok, nil} == Articles.favorite_article(%{user_id: user1.id, article_id: article.id})
+      assert {:ok, nil} == Articles.favorite_article(user1.id, article.id)
 
       assert {:ok, 1} == Articles.get_favorites_count(article.id)
 
-      assert {:ok, nil} == Articles.favorite_article(%{user_id: user2.id, article_id: article.id})
+      assert {:ok, nil} == Articles.favorite_article(user2.id, article.id)
 
       assert {:ok, 2} == Articles.get_favorites_count(article.id)
     end
@@ -267,11 +267,11 @@ defmodule RealWorld.ArticlesTest do
       user = insert(:user)
       article = insert(:article)
 
-      assert {:ok, nil} == Articles.favorite_article(%{user_id: user.id, article_id: article.id})
+      assert {:ok, nil} == Articles.favorite_article(user.id, article.id)
 
       assert {:ok, 1} == Articles.get_favorites_count(article.id)
 
-      assert {:ok, nil} == Articles.favorite_article(%{user_id: user.id, article_id: article.id})
+      assert {:ok, nil} == Articles.favorite_article(user.id, article.id)
 
       assert {:ok, 1} == Articles.get_favorites_count(article.id)
     end
