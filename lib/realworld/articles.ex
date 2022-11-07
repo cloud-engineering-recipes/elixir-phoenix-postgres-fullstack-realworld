@@ -112,6 +112,20 @@ defmodule RealWorld.Articles do
     end
   end
 
+  def unfavorite_article(user_id, article_id) do
+    with {:ok, is_favorited} <- is_favorited?(user_id, article_id) do
+      if is_favorited do
+        with {:ok, _} <-
+               Repo.get_by!(Favorite, user_id: user_id, article_id: article_id)
+               |> Repo.delete() do
+          {:ok, nil}
+        end
+      else
+        {:ok, nil}
+      end
+    end
+  end
+
   def is_favorited?(user_id, article_id) do
     with {:ok, user} <- Users.get_user_by_id(user_id),
          {:ok, article} <- get_article_by_id(article_id) do
