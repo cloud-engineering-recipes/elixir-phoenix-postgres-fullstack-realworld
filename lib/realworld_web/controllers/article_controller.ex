@@ -7,26 +7,24 @@ defmodule RealWorldWeb.ArticleController do
 
   action_fallback(RealWorldWeb.FallbackController)
 
-  def create_article(conn, %{
-        "article" => %{
-          "title" => title,
-          "description" => description,
-          "body" => body,
-          "tagList" => tags
-        }
-      }) do
+  def create_article(conn, %{"article" => create_article_params}) do
     author = conn.private.guardian_default_resource
 
-    with {:ok, article} <-
-           %{
-             author_id: author.id,
-             title: title,
-             description: description,
-             body: body,
-             tags: tags
-           }
-           |> Articles.create_article(),
-         {:ok, author} <- Users.get_user_by_id(author.id) do
+    create_article_attrs = %{
+      author_id: author.id,
+      title: create_article_params["title"],
+      description: create_article_params["description"],
+      body: create_article_params["body"]
+    }
+
+    create_article_attrs =
+      if tags = create_article_params["tagList"] do
+        Map.put(create_article_attrs, :tags, tags)
+      else
+        create_article_attrs
+      end
+
+    with {:ok, article} <- Articles.create_article(create_article_attrs) do
       conn
       |> put_status(:created)
       |> put_resp_header("location", Routes.article_path(conn, :get_article, article.slug))
@@ -39,17 +37,6 @@ defmodule RealWorldWeb.ArticleController do
           |> Map.put(:is_following_author, false)
       })
     end
-  end
-
-  def create_article(conn, %{
-        "article" =>
-          %{
-            "title" => _title,
-            "description" => _description,
-            "body" => _body
-          } = create_article_params
-      }) do
-    create_article(conn, Map.put(create_article_params, "tagList", []))
   end
 
   def get_article(conn, %{"slug" => slug}) do

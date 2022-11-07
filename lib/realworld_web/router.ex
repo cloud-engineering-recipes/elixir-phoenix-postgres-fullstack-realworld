@@ -36,6 +36,8 @@ defmodule RealWorldWeb.Router do
 
     post "/users", UserController, :register_user
     post "/users/login", UserController, :login
+
+    get "/tags", TagController, :get_tags
   end
 
   scope "/api", RealWorldWeb do

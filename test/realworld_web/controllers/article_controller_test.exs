@@ -45,6 +45,41 @@ defmodule RealWorldWeb.ArticleControllerTest do
              }
     end
 
+    test "returns 201 and renders article when tagList is not sent", %{
+      conn: conn
+    } do
+      author = insert(:user)
+
+      create_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph()
+      }
+
+      create_article_conn =
+        conn
+        |> secure_conn(author.id)
+        |> post(Routes.article_path(conn, :create_article), article: create_article_params)
+
+      assert %{"article" => article} = json_response(create_article_conn, 201)
+      assert article["slug"] == Slug.slugify(create_article_params.title)
+      assert article["title"] == create_article_params.title
+      assert article["description"] == create_article_params.description
+      assert article["body"] == create_article_params.body
+      assert article["tagList"] == []
+      assert {:ok, _} = Date.from_iso8601(article["createdAt"])
+      assert {:ok, _} = Date.from_iso8601(article["updatedAt"])
+      assert !article["favorited"]
+      assert article["favoritesCount"] == 0
+
+      assert article["author"] == %{
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
+               "following" => false
+             }
+    end
+
     test "returns 401 and renders errors when bearer token is not sent", %{
       conn: conn
     } do

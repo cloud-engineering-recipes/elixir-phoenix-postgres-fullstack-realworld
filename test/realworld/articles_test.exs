@@ -509,39 +509,32 @@ defmodule RealWorld.ArticlesTest do
     end
   end
 
-  describe "get_tags/0" do
+  describe "list_tags/0" do
     test "returns the list of articles' tags in alphabetical order" do
+      ctag = insert(:tag, name: "ctag")
+      btag = insert(:tag, name: "btag")
+      atag = insert(:tag, name: "atag")
+
       create_article1_attrs = %{
         author_id: insert(:user).id,
         title: Faker.Lorem.sentence(),
         description: Faker.Lorem.sentence(),
         body: Faker.Lorem.paragraph(),
         tags: [
-          "btag",
-          "atag",
-          "ctag"
-        ]
-      }
-
-      create_article2_attrs = %{
-        author_id: insert(:user).id,
-        title: Faker.Lorem.sentence(),
-        description: Faker.Lorem.sentence(),
-        body: Faker.Lorem.paragraph(),
-        tags: [
-          "atag"
+          btag.name,
+          atag.name,
+          ctag.name
         ]
       }
 
       assert {:ok, %Article{} = _} = Articles.create_article(create_article1_attrs)
-      assert {:ok, %Article{} = _} = Articles.create_article(create_article2_attrs)
 
-      assert {:ok, tags} = Articles.get_tags()
-      assert tags |> Enum.map(& &1.name) == ["atag", "btag", "ctag"]
+      assert {:ok, tags} = Articles.list_tags()
+      assert tags == [atag, btag, ctag]
     end
 
     test "returns empty when no article has tags" do
-      assert {:ok, tags} = Articles.get_tags()
+      assert {:ok, tags} = Articles.list_tags()
       assert tags == []
     end
   end

@@ -145,7 +145,7 @@ defmodule RealWorld.Articles do
     end
   end
 
-  def get_tags do
+  def list_tags do
     with tags <-
            Tag
            |> order_by(asc: :name)
