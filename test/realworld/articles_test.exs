@@ -221,6 +221,12 @@ defmodule RealWorld.ArticlesTest do
   end
 
   describe "list_articles/1" do
+    test "retuns empty list when no articles exist" do
+      assert {:ok, articles} = Articles.list_articles()
+
+      assert articles == []
+    end
+
     test "returns articles ordered by most recent when given no filters" do
       article1 =
         insert(:article,
