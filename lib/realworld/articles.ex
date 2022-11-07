@@ -36,12 +36,31 @@ defmodule RealWorld.Articles do
   end
 
   def list_articles(attrs \\ %{}) do
+    query =
+      Article
+      |> join(:left, [a], assoc(a, :tags), as: :tags)
+      |> join(:left, [a], assoc(a, :favorites), as: :favorites)
+      |> where(^filter_articles_where(attrs))
+      |> order_by(^filter_articles_order_by(attrs[:order_by]))
+
+    query =
+      if limit = attrs[:limit] || attrs["limit"] do
+        query
+        |> limit(^limit)
+      else
+        query
+      end
+
+    query =
+      if offset = attrs[:offset] || attrs["offset"] do
+        query
+        |> offset(^offset)
+      else
+        query
+      end
+
     with articles <-
-           Article
-           |> join(:left, [a], assoc(a, :tags), as: :tags)
-           |> join(:left, [a], assoc(a, :favorites), as: :favorites)
-           |> where(^filter_articles_where(attrs))
-           |> order_by(^filter_articles_order_by(attrs[:order_by]))
+           query
            |> Repo.all()
            |> Repo.preload([:tags]) do
       {:ok, articles}

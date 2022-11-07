@@ -289,13 +289,117 @@ defmodule RealWorld.ArticlesTest do
         )
 
       article2 = insert(:article)
+
       _article3 = insert(:article)
 
-      assert {:ok, nil} = Articles.favorite_article(user.id, article1.id)
-      assert {:ok, nil} = Articles.favorite_article(user.id, article2.id)
+      assert {:ok, _} = Articles.favorite_article(user.id, article1.id)
+      assert {:ok, _} = Articles.favorite_article(user.id, article2.id)
 
       assert {:ok, articles} = Articles.list_articles(%{favorited_by: user.id})
       assert articles == [article2, article1]
+    end
+
+    test "returns articles when given limit" do
+      article1 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
+      _article2 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(2))
+        )
+
+      article3 = insert(:article)
+
+      assert {:ok, articles} = Articles.list_articles(%{limit: 2})
+      assert articles == [article3, article1]
+    end
+
+    test "returns articles when given offset" do
+      article1 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
+      article2 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(2))
+        )
+
+      _article3 = insert(:article)
+
+      assert {:ok, articles} = Articles.list_articles(%{offset: 1})
+      assert articles == [article1, article2]
+    end
+
+    test "retuns articles when given all filters" do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      tag1 = insert(:tag, name: "tag1")
+      tag2 = insert(:tag, name: "tag2")
+
+      limit = 2
+      offset = 1
+
+      article1 =
+        insert(:article,
+          author: user1,
+          tags: [tag1],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(5))
+        )
+
+      article2 =
+        insert(:article,
+          author: user1,
+          tags: [tag1],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(4))
+        )
+
+      article3 =
+        insert(:article,
+          author: user1,
+          tags: [tag1, tag2],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(3))
+        )
+
+      article4 =
+        insert(:article,
+          author: user1,
+          tags: [tag1, tag2],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(2))
+        )
+
+      article5 =
+        insert(:article,
+          author: user1,
+          tags: [tag1, tag2],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
+      assert {:ok, _} = Articles.favorite_article(user2.id, article1.id)
+      assert {:ok, _} = Articles.favorite_article(user2.id, article2.id)
+      assert {:ok, _} = Articles.favorite_article(user2.id, article3.id)
+      assert {:ok, _} = Articles.favorite_article(user2.id, article4.id)
+      assert {:ok, _} = Articles.favorite_article(user2.id, article5.id)
+
+      expected_articles = [article4, article3]
+
+      _article5 = insert(:article, author: user2)
+      _article6 = insert(:article, tags: [tag2])
+      article7 = insert(:article)
+      assert {:ok, _} = Articles.favorite_article(user1.id, article7.id)
+
+      assert {:ok, articles} =
+               Articles.list_articles(%{
+                 author_id: user1.id,
+                 tag: tag1.name,
+                 favorited_by: user2.id,
+                 limit: limit,
+                 offset: offset
+               })
+
+      assert articles == expected_articles
     end
   end
 
