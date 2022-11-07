@@ -57,8 +57,8 @@ defmodule RealWorldWeb.ArticleController do
          {:ok, author} <- Users.get_user_by_id(article.author_id),
          {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
       user_id =
-        if Map.has_key?(conn.private, :guardian_default_resource) do
-          conn.private.guardian_default_resource.id
+        if user = conn.private[:guardian_default_resource] do
+          user.id
         else
           nil
         end
@@ -216,6 +216,29 @@ defmodule RealWorldWeb.ArticleController do
 
     with {:ok, article} <- Articles.get_article_by_slug(slug),
          {:ok, _} <- Articles.favorite_article(user.id, article.id),
+         {:ok, author} <- Users.get_user_by_id(article.author_id) do
+      {:ok, is_following_author} = Profiles.is_following?(user.id, article.author_id)
+
+      {:ok, favorites_count} = Articles.get_favorites_count(article.id)
+
+      render(conn, "show.json", %{
+        article:
+          article
+          |> Map.put(:is_favorited, true)
+          |> Map.put(:favorites_count, favorites_count)
+          |> Map.put(:author, author)
+          |> Map.put(:is_following_author, is_following_author)
+      })
+    end
+  end
+
+  def unfavorite_article(conn, %{
+        "slug" => slug
+      }) do
+    user = conn.private.guardian_default_resource
+
+    with {:ok, article} <- Articles.get_article_by_slug(slug),
+         {:ok, _} <- Articles.unfavorite_article(user.id, article.id),
          {:ok, author} <- Users.get_user_by_id(article.author_id) do
       {:ok, is_following_author} = Profiles.is_following?(user.id, article.author_id)
 

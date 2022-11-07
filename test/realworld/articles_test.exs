@@ -409,7 +409,7 @@ defmodule RealWorld.ArticlesTest do
     end
   end
 
-  describe "favorite_article/1" do
+  describe "favorite_article/2" do
     test "favorites an article" do
       user = insert(:user)
       article = insert(:article)
@@ -436,6 +436,38 @@ defmodule RealWorld.ArticlesTest do
 
       assert {:not_found, "Article #{article_id} not found"} ==
                Articles.favorite_article(user.id, article_id)
+    end
+  end
+
+  describe "unfavorite_article/2" do
+    test "unfavorites an article" do
+      user = insert(:user)
+      article = insert(:article)
+
+      assert {:ok, nil} == Articles.favorite_article(user.id, article.id)
+
+      assert {:ok, true} == Articles.is_favorited?(user.id, article.id)
+
+      assert {:ok, nil} == Articles.unfavorite_article(user.id, article.id)
+
+      assert {:ok, false} == Articles.is_favorited?(user.id, article.id)
+    end
+
+    test "returns :not_found when the user is not found" do
+      user_id = Faker.UUID.v4()
+      article = insert(:article)
+
+      assert {:not_found, "User #{user_id} not found"} ==
+               Articles.unfavorite_article(user_id, article.id)
+    end
+
+    test "returns :not_found when the article is not found" do
+      user = insert(:user)
+
+      article_id = Faker.UUID.v4()
+
+      assert {:not_found, "Article #{article_id} not found"} ==
+               Articles.unfavorite_article(user.id, article_id)
     end
   end
 

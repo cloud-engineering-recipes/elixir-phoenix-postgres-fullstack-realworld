@@ -4,7 +4,7 @@ defmodule RealWorld.ProfilesTest do
   import RealWorld.Factory
   alias RealWorld.Profiles
 
-  describe "follow_user/1" do
+  describe "follow_user/2" do
     test "follows an user" do
       follower = insert(:user)
       followed = insert(:user)
@@ -34,7 +34,7 @@ defmodule RealWorld.ProfilesTest do
     end
   end
 
-  describe "unfollow_user/1" do
+  describe "unfollow_user/2" do
     test "unfollows an user" do
       follower = insert(:user)
       followed = insert(:user)

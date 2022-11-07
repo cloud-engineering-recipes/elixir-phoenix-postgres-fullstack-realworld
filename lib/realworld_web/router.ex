@@ -50,6 +50,7 @@ defmodule RealWorldWeb.Router do
     post "/articles", ArticleController, :create_article
     post "/articles/:slug/favorite", ArticleController, :favorite_article
     put "/articles/:slug", ArticleController, :update_article
+    delete "/articles/:slug/favorite", ArticleController, :unfavorite_article
   end
 
   scope "/api", RealWorldWeb do
