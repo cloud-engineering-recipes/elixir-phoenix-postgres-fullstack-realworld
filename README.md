@@ -17,3 +17,8 @@ For more information on how to this works with other frontends/backends, head ov
 # Getting started
 
 > npm install, npm start, etc.
+
+## Testing
+
+1. Run `mix up.database`.
+1. Run `mix test`.
