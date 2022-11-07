@@ -7,7 +7,7 @@ defmodule RealWorld.Articles do
 
   import Ecto.Query
 
-  alias RealWorld.Articles.{Article, Favorite}
+  alias RealWorld.Articles.{Article, Favorite, Tag}
   alias RealWorld.Repo
   alias RealWorld.Users
 
@@ -142,6 +142,15 @@ defmodule RealWorld.Articles do
       query = from(f in Favorite, where: f.article_id == ^article.id)
 
       {:ok, Repo.aggregate(query, :count)}
+    end
+  end
+
+  def get_tags do
+    with tags <-
+           Tag
+           |> order_by(asc: :name)
+           |> Repo.all() do
+      {:ok, tags}
     end
   end
 end

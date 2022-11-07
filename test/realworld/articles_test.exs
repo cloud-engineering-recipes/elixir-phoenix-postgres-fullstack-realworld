@@ -508,4 +508,41 @@ defmodule RealWorld.ArticlesTest do
                Articles.get_favorites_count(article_id)
     end
   end
+
+  describe "get_tags/0" do
+    test "returns the list of articles' tags in alphabetical order" do
+      create_article1_attrs = %{
+        author_id: insert(:user).id,
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tags: [
+          "btag",
+          "atag",
+          "ctag"
+        ]
+      }
+
+      create_article2_attrs = %{
+        author_id: insert(:user).id,
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tags: [
+          "atag"
+        ]
+      }
+
+      assert {:ok, %Article{} = _} = Articles.create_article(create_article1_attrs)
+      assert {:ok, %Article{} = _} = Articles.create_article(create_article2_attrs)
+
+      assert {:ok, tags} = Articles.get_tags()
+      assert tags |> Enum.map(& &1.name) == ["atag", "btag", "ctag"]
+    end
+
+    test "returns empty when no article has tags" do
+      assert {:ok, tags} = Articles.get_tags()
+      assert tags == []
+    end
+  end
 end
