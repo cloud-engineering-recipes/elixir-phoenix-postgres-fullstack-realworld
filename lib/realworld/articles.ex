@@ -39,6 +39,7 @@ defmodule RealWorld.Articles do
     with articles <-
            Article
            |> join(:left, [a], assoc(a, :tags), as: :tags)
+           |> join(:left, [a], assoc(a, :favorites), as: :favorites)
            |> where(^filter_articles_where(attrs))
            |> order_by(^filter_articles_order_by(attrs[:order_by]))
            |> Repo.all()
@@ -55,24 +56,25 @@ defmodule RealWorld.Articles do
       {:author_id, value}, dynamic ->
         dynamic([a], ^dynamic and a.author_id == ^value)
 
+      {:favorited_by, value}, dynamic ->
+        dynamic([favorites: f], ^dynamic and f.user_id == ^value)
+
       {_, _}, dynamic ->
         # Not a where parameter
         dynamic
     end)
   end
 
-  defp filter_articles_order_by(_),
-    do: [desc: dynamic([a], a.inserted_at)]
+  defp filter_articles_order_by(_) do
+    [desc: :inserted_at]
+  end
 
   def update_article(article_id, attrs) do
-    with {:ok, article} <- get_article_by_id(article_id),
-         {:ok, updated_article} <-
-           article
-           |> Article.changeset(attrs)
-           |> Repo.update() do
-      {:ok,
-       updated_article
-       |> Repo.preload([:tags])}
+    with {:ok, article} <- get_article_by_id(article_id) do
+      article
+      |> Repo.preload([:tags])
+      |> Article.changeset(attrs)
+      |> Repo.update()
     end
   end
 
@@ -94,7 +96,8 @@ defmodule RealWorld.Articles do
   def is_favorited?(user_id, article_id) do
     with {:ok, user} <- Users.get_user_by_id(user_id),
          {:ok, article} <- get_article_by_id(article_id) do
-      case Repo.get_by(Favorite, user_id: user.id, article_id: article.id) do
+      case from(f in Favorite, where: f.user_id == ^user.id and f.article_id == ^article.id)
+           |> Repo.one() do
         nil -> {:ok, false}
         _ -> {:ok, true}
       end
@@ -103,9 +106,9 @@ defmodule RealWorld.Articles do
 
   def get_favorites_count(article_id) do
     with {:ok, article} <- get_article_by_id(article_id) do
-      query = from(f in Favorite, select: f.id, where: f.article_id == ^article.id)
+      query = from(f in Favorite, where: f.article_id == ^article.id)
 
-      {:ok, Repo.aggregate(query, :count, :id)}
+      {:ok, Repo.aggregate(query, :count)}
     end
   end
 end

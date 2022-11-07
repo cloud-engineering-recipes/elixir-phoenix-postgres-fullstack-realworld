@@ -24,7 +24,9 @@ defmodule RealWorld.ArticlesTest do
           " UPPER2 ",
           "mIxEd1",
           " mIxEd2 ",
-          " mIxEd3 ! "
+          " mIxEd3 ! ",
+          "duplicated1",
+          "duplicated1"
         ]
       }
 
@@ -36,14 +38,15 @@ defmodule RealWorld.ArticlesTest do
       assert article.description == create_article_attrs.description
       assert article.body == create_article_attrs.body
 
-      assert article.tags |> Enum.map(fn tag -> tag.name end) == [
+      assert article.tags |> Enum.map(& &1.name) == [
                "lower1",
                "lower2",
                "upper1",
                "upper2",
                "mixed1",
                "mixed2",
-               "mixed3"
+               "mixed3",
+               "duplicated1"
              ]
 
       with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(article.id) do
@@ -116,7 +119,7 @@ defmodule RealWorld.ArticlesTest do
       assert updated_article.description == update_article_attrs.description
       assert updated_article.body == update_article_attrs.body
 
-      assert updated_article.tags |> Enum.map(fn tag -> tag.name end) == [
+      assert updated_article.tags |> Enum.map(& &1.name) == [
                "lower1",
                "lower2",
                "upper1",
@@ -125,6 +128,28 @@ defmodule RealWorld.ArticlesTest do
                "mixed2",
                "mixed3"
              ]
+
+      with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(updated_article.id) do
+        assert updated_article == got_article
+      end
+    end
+
+    test "returns an article when no updates" do
+      author = insert(:user)
+
+      tags = [
+        insert(:tag, name: "tag1"),
+        insert(:tag, name: "tag2")
+      ]
+
+      article = insert(:article, author: author, tags: tags)
+
+      update_article_attrs = %{}
+
+      assert {:ok, %Article{} = updated_article} =
+               Articles.update_article(article.id, update_article_attrs)
+
+      assert updated_article == article
 
       with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(updated_article.id) do
         assert updated_article == got_article
@@ -197,7 +222,11 @@ defmodule RealWorld.ArticlesTest do
 
   describe "list_articles/1" do
     test "returns articles ordered by most recent when given no filters" do
-      article1 = insert(:article, inserted_at: Faker.DateTime.backward(1))
+      article1 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
       article2 = insert(:article)
 
       assert {:ok, articles} = Articles.list_articles()
@@ -209,10 +238,26 @@ defmodule RealWorld.ArticlesTest do
       tag1 = insert(:tag, name: "tag1")
       tag2 = insert(:tag, name: "tag2")
 
-      article1 = insert(:article, tags: [tag1], inserted_at: Faker.DateTime.backward(1))
+      article1 =
+        insert(:article,
+          tags: [tag1],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
       article2 = insert(:article, tags: [tag1])
-      article3 = insert(:article, tags: [tag1, tag2], inserted_at: Faker.DateTime.backward(2))
-      _article4 = insert(:article, tags: [tag2], inserted_at: Faker.DateTime.backward(1))
+
+      article3 =
+        insert(:article,
+          tags: [tag1, tag2],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(2))
+        )
+
+      _article4 =
+        insert(:article,
+          tags: [tag2],
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
       _article5 = insert(:article, tags: [tag2])
 
       assert {:ok, articles} = Articles.list_articles(%{tag: tag1.name})
@@ -221,11 +266,35 @@ defmodule RealWorld.ArticlesTest do
 
     test "returns articles when given author_id filter" do
       author = insert(:user)
-      article1 = insert(:article, author: author, inserted_at: Faker.DateTime.backward(1))
+
+      article1 =
+        insert(:article,
+          author: author,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
       article2 = insert(:article, author: author)
-      insert(:article)
+      _article3 = insert(:article)
 
       assert {:ok, articles} = Articles.list_articles(%{author_id: author.id})
+      assert articles == [article2, article1]
+    end
+
+    test "returns articles when given favorited_by filter" do
+      user = insert(:user)
+
+      article1 =
+        insert(:article,
+          inserted_at: DateTime.utc_now() |> Timex.subtract(Timex.Duration.from_days(1))
+        )
+
+      article2 = insert(:article)
+      _article3 = insert(:article)
+
+      assert {:ok, nil} = Articles.favorite_article(user.id, article1.id)
+      assert {:ok, nil} = Articles.favorite_article(user.id, article2.id)
+
+      assert {:ok, articles} = Articles.list_articles(%{favorited_by: user.id})
       assert articles == [article2, article1]
     end
   end

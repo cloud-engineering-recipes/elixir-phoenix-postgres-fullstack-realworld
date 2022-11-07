@@ -5,7 +5,7 @@ defmodule RealWorld.Articles.Article do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias RealWorld.Articles.Tag
+  alias RealWorld.Articles.{Favorite, Tag}
   alias RealWorld.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -20,6 +20,8 @@ defmodule RealWorld.Articles.Article do
       join_through: "articles_tags",
       on_replace: :delete
 
+    has_many(:favorites, Favorite)
+
     timestamps()
   end
 
@@ -28,7 +30,7 @@ defmodule RealWorld.Articles.Article do
     |> cast(attrs, [:author_id, :title, :description, :body])
     |> validate_required([:author_id, :title, :description, :body])
     |> put_slug()
-    |> put_assoc(:tags, get_or_insert_tags(attrs))
+    |> maybe_put_tags(attrs)
     |> unique_constraint([:slug])
     |> unique_constraint([:author_id, :title])
   end
@@ -39,23 +41,20 @@ defmodule RealWorld.Articles.Article do
 
   defp put_slug(changeset), do: changeset
 
-  defp get_or_insert_tags(attrs) when is_map_key(attrs, :tags) do
-    get_or_insert_tags(attrs[:tags])
-  end
-
-  defp get_or_insert_tags(attrs) when is_map_key(attrs, "tags") do
-    get_or_insert_tags(attrs["tags"])
+  defp maybe_put_tags(changeset, attrs) do
+    if tag_names = attrs[:tags] || attrs["tags"] do
+      put_assoc(changeset, :tags, get_or_insert_tags(tag_names))
+    else
+      changeset
+    end
   end
 
   defp get_or_insert_tags(tag_names) when is_list(tag_names) do
     tag_names
-    |> Enum.map(fn name -> format_tag_name(name) end)
-    |> Enum.reject(fn name -> name == nil end)
-    |> Enum.map(fn name -> get_or_insert_tag(name) end)
-  end
-
-  defp get_or_insert_tags(_) do
-    []
+    |> Enum.map(&format_tag_name(&1))
+    |> Enum.filter(&(&1 != nil))
+    |> Enum.dedup()
+    |> Enum.map(&get_or_insert_tag(&1))
   end
 
   defp format_tag_name(tag_name) when tag_name == nil do

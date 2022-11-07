@@ -53,7 +53,8 @@ defmodule RealWorld.MixProject do
       {:slugify, "~> 1.3"},
       {:swoosh, "~> 1.3"},
       {:telemetry_metrics, "~> 0.6"},
-      {:telemetry_poller, "~> 1.0"}
+      {:telemetry_poller, "~> 1.0"},
+      {:timex, "~> 3.7.9"}
     ]
   end
 
@@ -68,7 +69,7 @@ defmodule RealWorld.MixProject do
       setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["up.database", "ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.deploy": ["esbuild default --minify", "phx.digest"],
       "gen.dockerfile": [
         "deps.get --only prod",
