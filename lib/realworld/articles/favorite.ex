@@ -8,10 +8,10 @@ defmodule RealWorld.Articles.Favorite do
   alias RealWorld.Articles.Article
   alias RealWorld.Users.User
 
-  @primary_key false
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "favorites" do
-    belongs_to(:user, User, primary_key: true, type: :binary_id)
-    belongs_to(:article, Article, primary_key: true, type: :binary_id)
+    belongs_to(:user, User, type: :binary_id)
+    belongs_to(:article, Article, type: :binary_id)
 
     timestamps(updated_at: false)
   end

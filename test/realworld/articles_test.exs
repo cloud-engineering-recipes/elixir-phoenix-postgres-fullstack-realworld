@@ -333,7 +333,7 @@ defmodule RealWorld.ArticlesTest do
       assert articles == [article1, article2]
     end
 
-    test "retuns articles when given all filters" do
+    test "returns articles when given all filters" do
       user1 = insert(:user)
       user2 = insert(:user)
       tag1 = insert(:tag, name: "tag1")

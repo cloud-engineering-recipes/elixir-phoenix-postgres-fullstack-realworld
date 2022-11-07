@@ -19,14 +19,15 @@ defmodule RealWorld.Repo.Migrations.AddArticlesTable do
     create table("tags", primary_key: false) do
       add :id, :uuid, primary_key: true
       add :name, :string, null: false
+
       timestamps(type: :utc_datetime)
     end
 
     create unique_index("tags", [:name])
 
     create table("articles_tags", primary_key: false) do
-      add :article_id, references("articles", type: :uuid), primary_key: true
-      add :tag_id, references("tags", type: :uuid), primary_key: true
+      add :article_id, references("articles", type: :uuid)
+      add :tag_id, references("tags", type: :uuid)
     end
   end
 end

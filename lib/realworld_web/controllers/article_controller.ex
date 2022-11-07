@@ -31,11 +31,12 @@ defmodule RealWorldWeb.ArticleController do
       |> put_status(:created)
       |> put_resp_header("location", Routes.article_path(conn, :get_article, article.slug))
       |> render("show.json", %{
-        article: article,
-        is_favorited: false,
-        favorites_count: 0,
-        author: author,
-        is_following_author: false
+        article:
+          article
+          |> Map.put(:is_favorited, false)
+          |> Map.put(:favorites_count, 0)
+          |> Map.put(:author, author)
+          |> Map.put(:is_following_author, false)
       })
     end
   end
@@ -81,12 +82,97 @@ defmodule RealWorldWeb.ArticleController do
         end
 
       render(conn, "show.json", %{
-        article: article,
-        is_favorited: is_favorited,
-        favorites_count: favorites_count,
-        author: author,
-        is_following_author: is_following_author
+        article:
+          article
+          |> Map.put(:is_favorited, is_favorited)
+          |> Map.put(:favorites_count, favorites_count)
+          |> Map.put(:author, author)
+          |> Map.put(:is_following_author, is_following_author)
       })
+    end
+  end
+
+  def list_articles(conn, params) do
+    list_articles_filters = %{}
+
+    list_articles_filters =
+      if tag = params["tag"] do
+        Map.put(list_articles_filters, :tag, tag)
+      else
+        list_articles_filters
+      end
+
+    list_articles_filters =
+      if author_username = params["author"] do
+        with {:ok, author} <- Users.get_user_by_username(author_username) do
+          Map.put(list_articles_filters, :author_id, author.id)
+        end
+      else
+        list_articles_filters
+      end
+
+    list_articles_filters =
+      if favorited_by_username = params["favorited"] do
+        with {:ok, favorited_by} <- Users.get_user_by_username(favorited_by_username) do
+          Map.put(list_articles_filters, :favorited_by, favorited_by.id)
+        end
+      else
+        list_articles_filters
+      end
+
+    list_articles_filters =
+      if limit = params["limit"] do
+        Map.put(list_articles_filters, :limit, limit)
+      else
+        Map.put(list_articles_filters, :limit, 20)
+      end
+
+    list_articles_filters =
+      if offset = params["offset"] do
+        Map.put(list_articles_filters, :offset, offset)
+      else
+        Map.put(list_articles_filters, :offset, 0)
+      end
+
+    with {:ok, articles} <- Articles.list_articles(list_articles_filters) do
+      articles =
+        articles
+        |> Enum.map(fn article ->
+          with {:ok, author} <- Users.get_user_by_id(article.author_id) do
+            Map.put(article, :author, author)
+          end
+        end)
+        |> Enum.map(fn article ->
+          with {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
+            Map.put(article, :favorites_count, favorites_count)
+          end
+        end)
+
+      user_id =
+        if user = conn.private[:guardian_default_resource] do
+          user.id
+        else
+          nil
+        end
+
+      articles =
+        if user_id do
+          articles
+          |> Enum.map(fn article ->
+            with {:ok, is_favorited} <- Articles.is_favorited?(user_id, article.id),
+                 {:ok, is_following_author} <- Profiles.is_following?(user_id, article.author_id) do
+              article
+              |> Map.put(:is_favorited, is_favorited)
+              |> Map.put(:is_following_author, is_following_author)
+            end
+          end)
+        else
+          articles
+          |> Enum.map(&Map.put(&1, :is_favorited, false))
+          |> Enum.map(&Map.put(&1, :is_following_author, false))
+        end
+
+      render(conn, "index.json", articles: articles)
     end
   end
 
@@ -105,11 +191,12 @@ defmodule RealWorldWeb.ArticleController do
                ),
              {:ok, favorites_count} <- Articles.get_favorites_count(article.id) do
           render(conn, "show.json", %{
-            article: updated_article,
-            is_favorited: false,
-            favorites_count: favorites_count,
-            author: author,
-            is_following_author: false
+            article:
+              updated_article
+              |> Map.put(:is_favorited, false)
+              |> Map.put(:favorites_count, favorites_count)
+              |> Map.put(:author, author)
+              |> Map.put(:is_following_author, false)
           })
         end
       else
@@ -135,11 +222,12 @@ defmodule RealWorldWeb.ArticleController do
       {:ok, favorites_count} = Articles.get_favorites_count(article.id)
 
       render(conn, "show.json", %{
-        article: article,
-        is_favorited: true,
-        favorites_count: favorites_count,
-        author: author,
-        is_following_author: is_following_author
+        article:
+          article
+          |> Map.put(:is_favorited, true)
+          |> Map.put(:favorites_count, favorites_count)
+          |> Map.put(:author, author)
+          |> Map.put(:is_following_author, is_following_author)
       })
     end
   end

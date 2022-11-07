@@ -480,4 +480,38 @@ defmodule RealWorldWeb.ArticleControllerTest do
              }
     end
   end
+
+  describe "list_articles" do
+    test "returns 200 and renders 20 articles by default when limit is not set", %{
+      conn: conn
+    } do
+      for _ <- 0..21 do
+        author = insert(:user)
+
+        create_article_params = %{
+          title: Faker.Lorem.sentence(),
+          description: Faker.Lorem.sentence(),
+          body: Faker.Lorem.paragraph(),
+          tagList: Faker.Lorem.words()
+        }
+
+        create_article_conn =
+          conn
+          |> secure_conn(author.id)
+          |> post(Routes.article_path(conn, :create_article), article: create_article_params)
+
+        assert %{"article" => _} = json_response(create_article_conn, 201)
+      end
+
+      list_articles_conn =
+        conn
+        |> get(Routes.article_path(conn, :list_articles))
+
+      assert %{"articles" => articles, "articlesCount" => articles_count} =
+               json_response(list_articles_conn, 200)
+
+      assert length(articles) == 20
+      assert articles_count == 20
+    end
+  end
 end
