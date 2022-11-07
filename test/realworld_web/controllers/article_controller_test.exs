@@ -87,206 +87,6 @@ defmodule RealWorldWeb.ArticleControllerTest do
     end
   end
 
-  describe "update article" do
-    test "returns 200 and renders article", %{
-      conn: conn
-    } do
-      author = insert(:user)
-      article = insert(:article, author: author)
-
-      update_article_params = %{
-        title: Faker.Lorem.sentence(),
-        description: Faker.Lorem.sentence(),
-        body: Faker.Lorem.paragraph(),
-        tagList: Faker.Lorem.words()
-      }
-
-      update_article_conn =
-        conn
-        |> secure_conn(author.id)
-        |> put(Routes.article_path(conn, :update_article, article.slug),
-          article: update_article_params
-        )
-
-      assert %{"article" => updated_article} = json_response(update_article_conn, 200)
-      assert updated_article["slug"] == Slug.slugify(update_article_params.title)
-      assert updated_article["title"] == update_article_params.title
-      assert updated_article["description"] == update_article_params.description
-      assert updated_article["body"] == update_article_params.body
-      assert updated_article["tagList"] == update_article_params.tagList
-      assert updated_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert {:ok, _} = Date.from_iso8601(updated_article["updatedAt"])
-      assert !updated_article["favorited"]
-      assert updated_article["favoritesCount"] == 0
-
-      assert updated_article["author"] == %{
-               "username" => author.username,
-               "bio" => author.bio,
-               "image" => author.image,
-               "following" => false
-             }
-
-      get_article_conn =
-        conn
-        |> secure_conn(author.id)
-        |> get(Routes.article_path(conn, :get_article, updated_article["slug"]))
-
-      assert %{"article" => got_article} = json_response(get_article_conn, 200)
-      assert updated_article == got_article
-    end
-
-    test "returns 401 and renders errors when the token does not belong to the author", %{
-      conn: conn
-    } do
-      another_user = insert(:user)
-      article = insert(:article)
-
-      update_article_params = %{
-        title: Faker.Lorem.sentence(),
-        description: Faker.Lorem.sentence(),
-        body: Faker.Lorem.paragraph(),
-        tagList: Faker.Lorem.words()
-      }
-
-      update_article_conn =
-        conn
-        |> secure_conn(another_user.id)
-        |> put(Routes.article_path(conn, :update_article, article.slug),
-          article: update_article_params
-        )
-
-      assert json_response(update_article_conn, 401)["errors"]["body"] == [
-               "Unauthorized"
-             ]
-    end
-
-    test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn
-    } do
-      article = insert(:article)
-
-      update_article_params = %{
-        title: Faker.Lorem.sentence(),
-        description: Faker.Lorem.sentence(),
-        body: Faker.Lorem.paragraph(),
-        tagList: Faker.Lorem.words()
-      }
-
-      update_article_conn =
-        conn
-        |> put(Routes.article_path(conn, :update_article, article.slug),
-          article: update_article_params
-        )
-
-      assert json_response(update_article_conn, 401)["errors"]["body"] == [
-               "Unauthorized"
-             ]
-    end
-
-    test "returns 401 and renders errors when author is not found", %{
-      conn: conn
-    } do
-      article = insert(:article)
-
-      author_id = Faker.UUID.v4()
-
-      update_article_params = %{
-        title: Faker.Lorem.sentence(),
-        description: Faker.Lorem.sentence(),
-        body: Faker.Lorem.paragraph(),
-        tagList: Faker.Lorem.words()
-      }
-
-      update_article_conn =
-        conn
-        |> secure_conn(author_id)
-        |> put(Routes.article_path(conn, :update_article, article.slug),
-          article: update_article_params
-        )
-
-      assert json_response(update_article_conn, 401)["errors"]["body"] == [
-               "Unauthorized"
-             ]
-    end
-  end
-
-  describe "favorite article" do
-    test "returns 200 and renders article", %{
-      conn: conn
-    } do
-      user1 = insert(:user)
-      user2 = insert(:user)
-      author = insert(:user)
-      article = insert(:article, author: author)
-
-      user_1_favorite_article_conn =
-        conn
-        |> secure_conn(user1.id)
-        |> post(Routes.article_path(conn, :favorite_article, article.slug))
-
-      assert %{"article" => user_1_article} = json_response(user_1_favorite_article_conn, 200)
-      assert user_1_article["slug"] == Slug.slugify(article.title)
-      assert user_1_article["title"] == article.title
-      assert user_1_article["description"] == article.description
-      assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tags
-      assert user_1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert user_1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
-      assert user_1_article["favorited"]
-      assert user_1_article["favoritesCount"] == 1
-
-      assert user_1_article["author"] == %{
-               "username" => author.username,
-               "bio" => author.bio,
-               "image" => author.image,
-               "following" => false
-             }
-
-      user_2_favorite_article_conn =
-        conn
-        |> secure_conn(user2.id)
-        |> post(Routes.article_path(conn, :favorite_article, article.slug))
-
-      assert %{"article" => user_2_article} = json_response(user_2_favorite_article_conn, 200)
-
-      assert Map.delete(user_2_article, "favoritesCount") ==
-               Map.delete(user_1_article, "favoritesCount")
-
-      assert user_2_article["favoritesCount"] == 2
-    end
-
-    test "returns 401 and renders errors when bearer token is not sent", %{
-      conn: conn
-    } do
-      article = insert(:article)
-
-      favorite_article_conn =
-        conn
-        |> post(Routes.article_path(conn, :favorite_article, article.slug))
-
-      assert json_response(favorite_article_conn, 401)["errors"]["body"] == [
-               "Unauthorized"
-             ]
-    end
-
-    test "returns 401 and renders errors when author is not found", %{
-      conn: conn
-    } do
-      article = insert(:article)
-
-      author_id = Faker.UUID.v4()
-
-      favorite_article_conn =
-        conn
-        |> secure_conn(author_id)
-        |> post(Routes.article_path(conn, :favorite_article, article.slug))
-
-      assert json_response(favorite_article_conn, 401)["errors"]["body"] == [
-               "Unauthorized"
-             ]
-    end
-  end
-
   describe "get article" do
     test "returns 200 and renders article when article is favorited and author is followed", %{
       conn: conn
@@ -296,44 +96,44 @@ defmodule RealWorldWeb.ArticleControllerTest do
       author = insert(:user)
       article = insert(:article, author: author)
 
-      user_2_favorite_article_conn =
+      user2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_2_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user2_favorite_article_conn, 200)
 
-      user_1_favorite_article_conn =
+      user1_favorite_article_conn =
         conn
         |> secure_conn(user1.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_1_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user1_favorite_article_conn, 200)
 
-      user_1_follow_user_conn =
+      user1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
         |> post(Routes.profile_path(conn, :follow_user, author.username))
 
-      assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
+      assert %{"profile" => _} = json_response(user1_follow_user_conn, 200)
 
-      user_1_get_article_conn =
+      user1_get_article_conn =
         conn
         |> secure_conn(user1.id)
         |> get(Routes.article_path(conn, :get_article, article.slug))
 
-      assert %{"article" => user_1_article} = json_response(user_1_get_article_conn, 200)
-      assert user_1_article["slug"] == Slug.slugify(article.title)
-      assert user_1_article["title"] == article.title
-      assert user_1_article["description"] == article.description
-      assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tags
-      assert user_1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert user_1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
-      assert user_1_article["favorited"]
-      assert user_1_article["favoritesCount"] == 2
+      assert %{"article" => user1_article} = json_response(user1_get_article_conn, 200)
+      assert user1_article["slug"] == Slug.slugify(article.title)
+      assert user1_article["title"] == article.title
+      assert user1_article["description"] == article.description
+      assert user1_article["body"] == article.body
+      assert user1_article["tagList"] == article.tags
+      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["favorited"]
+      assert user1_article["favoritesCount"] == 2
 
-      assert user_1_article["author"] == %{
+      assert user1_article["author"] == %{
                "username" => author.username,
                "bio" => author.bio,
                "image" => author.image,
@@ -350,37 +150,37 @@ defmodule RealWorldWeb.ArticleControllerTest do
       author = insert(:user)
       article = insert(:article, author: author)
 
-      user_2_favorite_article_conn =
+      user2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_2_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user2_favorite_article_conn, 200)
 
-      user_1_follow_user_conn =
+      user1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
         |> post(Routes.profile_path(conn, :follow_user, author.username))
 
-      assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
+      assert %{"profile" => _} = json_response(user1_follow_user_conn, 200)
 
-      user_1_get_article_conn =
+      user1_get_article_conn =
         conn
         |> secure_conn(user1.id)
         |> get(Routes.article_path(conn, :get_article, article.slug))
 
-      assert %{"article" => user_1_article} = json_response(user_1_get_article_conn, 200)
-      assert user_1_article["slug"] == Slug.slugify(article.title)
-      assert user_1_article["title"] == article.title
-      assert user_1_article["description"] == article.description
-      assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tags
-      assert user_1_article["createdAt"] != nil
-      assert user_1_article["updatedAt"] != nil
-      assert !user_1_article["favorited"]
-      assert user_1_article["favoritesCount"] == 1
+      assert %{"article" => user1_article} = json_response(user1_get_article_conn, 200)
+      assert user1_article["slug"] == Slug.slugify(article.title)
+      assert user1_article["title"] == article.title
+      assert user1_article["description"] == article.description
+      assert user1_article["body"] == article.body
+      assert user1_article["tagList"] == article.tags
+      assert user1_article["createdAt"] != nil
+      assert user1_article["updatedAt"] != nil
+      assert !user1_article["favorited"]
+      assert user1_article["favoritesCount"] == 1
 
-      assert user_1_article["author"] == %{
+      assert user1_article["author"] == %{
                "username" => author.username,
                "bio" => author.bio,
                "image" => author.image,
@@ -397,30 +197,30 @@ defmodule RealWorldWeb.ArticleControllerTest do
       author = insert(:user)
       article = insert(:article, author: author)
 
-      user_2_favorite_article_conn =
+      user2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_2_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user2_favorite_article_conn, 200)
 
-      user_1_get_article_conn =
+      user1_get_article_conn =
         conn
         |> secure_conn(user1.id)
         |> get(Routes.article_path(conn, :get_article, article.slug))
 
-      assert %{"article" => user_1_article} = json_response(user_1_get_article_conn, 200)
-      assert user_1_article["slug"] == Slug.slugify(article.title)
-      assert user_1_article["title"] == article.title
-      assert user_1_article["description"] == article.description
-      assert user_1_article["body"] == article.body
-      assert user_1_article["tagList"] == article.tags
-      assert user_1_article["createdAt"] != nil
-      assert user_1_article["updatedAt"] != nil
-      assert !user_1_article["favorited"]
-      assert user_1_article["favoritesCount"] == 1
+      assert %{"article" => user1_article} = json_response(user1_get_article_conn, 200)
+      assert user1_article["slug"] == Slug.slugify(article.title)
+      assert user1_article["title"] == article.title
+      assert user1_article["description"] == article.description
+      assert user1_article["body"] == article.body
+      assert user1_article["tagList"] == article.tags
+      assert user1_article["createdAt"] != nil
+      assert user1_article["updatedAt"] != nil
+      assert !user1_article["favorited"]
+      assert user1_article["favoritesCount"] == 1
 
-      assert user_1_article["author"] == %{
+      assert user1_article["author"] == %{
                "username" => author.username,
                "bio" => author.bio,
                "image" => author.image,
@@ -436,26 +236,26 @@ defmodule RealWorldWeb.ArticleControllerTest do
       author = insert(:user)
       article = insert(:article, author: author)
 
-      user_2_favorite_article_conn =
+      user2_favorite_article_conn =
         conn
         |> secure_conn(user2.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_2_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user2_favorite_article_conn, 200)
 
-      user_1_favorite_article_conn =
+      user1_favorite_article_conn =
         conn
         |> secure_conn(user1.id)
         |> post(Routes.article_path(conn, :favorite_article, article.slug))
 
-      assert %{"article" => _} = json_response(user_1_favorite_article_conn, 200)
+      assert %{"article" => _} = json_response(user1_favorite_article_conn, 200)
 
-      user_1_follow_user_conn =
+      user1_follow_user_conn =
         conn
         |> secure_conn(user1.id)
         |> post(Routes.profile_path(conn, :follow_user, author.username))
 
-      assert %{"profile" => _} = json_response(user_1_follow_user_conn, 200)
+      assert %{"profile" => _} = json_response(user1_follow_user_conn, 200)
 
       get_article_conn =
         conn
@@ -626,6 +426,297 @@ defmodule RealWorldWeb.ArticleControllerTest do
 
       assert length(articles) == limit_by_default
       assert articles_count == limit_by_default
+    end
+  end
+
+  describe "update article" do
+    test "returns 200 and renders article", %{
+      conn: conn
+    } do
+      author = insert(:user)
+      article = insert(:article, author: author)
+
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tagList: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(author.id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert %{"article" => updated_article} = json_response(update_article_conn, 200)
+      assert updated_article["slug"] == Slug.slugify(update_article_params.title)
+      assert updated_article["title"] == update_article_params.title
+      assert updated_article["description"] == update_article_params.description
+      assert updated_article["body"] == update_article_params.body
+      assert updated_article["tagList"] == update_article_params.tagList
+      assert updated_article["createdAt"] == Date.to_iso8601(article.inserted_at)
+      assert {:ok, _} = Date.from_iso8601(updated_article["updatedAt"])
+      assert !updated_article["favorited"]
+      assert updated_article["favoritesCount"] == 0
+
+      assert updated_article["author"] == %{
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
+               "following" => false
+             }
+
+      get_article_conn =
+        conn
+        |> secure_conn(author.id)
+        |> get(Routes.article_path(conn, :get_article, updated_article["slug"]))
+
+      assert %{"article" => got_article} = json_response(get_article_conn, 200)
+      assert updated_article == got_article
+    end
+
+    test "returns 401 and renders errors when the token does not belong to the author", %{
+      conn: conn
+    } do
+      another_user = insert(:user)
+      article = insert(:article)
+
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tagList: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(another_user.id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when bearer token is not sent", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tagList: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when author is not found", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      author_id = Faker.UUID.v4()
+
+      update_article_params = %{
+        title: Faker.Lorem.sentence(),
+        description: Faker.Lorem.sentence(),
+        body: Faker.Lorem.paragraph(),
+        tagList: Faker.Lorem.words()
+      }
+
+      update_article_conn =
+        conn
+        |> secure_conn(author_id)
+        |> put(Routes.article_path(conn, :update_article, article.slug),
+          article: update_article_params
+        )
+
+      assert json_response(update_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+  end
+
+  describe "favorite article" do
+    test "returns 200 and renders article", %{
+      conn: conn
+    } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
+      user1_favorite_article_conn =
+        conn
+        |> secure_conn(user1.id)
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert %{"article" => user1_article} = json_response(user1_favorite_article_conn, 200)
+      assert user1_article["slug"] == Slug.slugify(article.title)
+      assert user1_article["title"] == article.title
+      assert user1_article["description"] == article.description
+      assert user1_article["body"] == article.body
+      assert user1_article["tagList"] == article.tags
+      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["favorited"]
+      assert user1_article["favoritesCount"] == 1
+
+      assert user1_article["author"] == %{
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
+               "following" => false
+             }
+
+      user2_favorite_article_conn =
+        conn
+        |> secure_conn(user2.id)
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert %{"article" => user2_article} = json_response(user2_favorite_article_conn, 200)
+
+      assert Map.delete(user2_article, "favoritesCount") ==
+               Map.delete(user1_article, "favoritesCount")
+
+      assert user2_article["favoritesCount"] == 2
+    end
+
+    test "returns 401 and renders errors when bearer token is not sent", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      favorite_article_conn =
+        conn
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert json_response(favorite_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when author is not found", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      author_id = Faker.UUID.v4()
+
+      favorite_article_conn =
+        conn
+        |> secure_conn(author_id)
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert json_response(favorite_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+  end
+
+  describe "unfavorite article" do
+    test "returns 200 and renders article", %{
+      conn: conn
+    } do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      author = insert(:user)
+      article = insert(:article, author: author)
+
+      user1_favorite_article_conn =
+        conn
+        |> secure_conn(user1.id)
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert %{"article" => _} = json_response(user1_favorite_article_conn, 200)
+
+      user2_favorite_article_conn =
+        conn
+        |> secure_conn(user2.id)
+        |> post(Routes.article_path(conn, :favorite_article, article.slug))
+
+      assert %{"article" => _} = json_response(user2_favorite_article_conn, 200)
+
+      user1_unfavorite_article_conn =
+        conn
+        |> secure_conn(user1.id)
+        |> delete(Routes.article_path(conn, :unfavorite_article, article.slug))
+
+      assert %{"article" => user1_article} = json_response(user1_unfavorite_article_conn, 200)
+      assert user1_article["slug"] == Slug.slugify(article.title)
+      assert user1_article["title"] == article.title
+      assert user1_article["description"] == article.description
+      assert user1_article["body"] == article.body
+      assert user1_article["tagList"] == article.tags
+      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["favorited"]
+      assert user1_article["favoritesCount"] == 1
+
+      assert user1_article["author"] == %{
+               "username" => author.username,
+               "bio" => author.bio,
+               "image" => author.image,
+               "following" => false
+             }
+
+      user2_unfavorite_article_conn =
+        conn
+        |> secure_conn(user2.id)
+        |> delete(Routes.article_path(conn, :unfavorite_article, article.slug))
+
+      assert %{"article" => user2_article} = json_response(user2_unfavorite_article_conn, 200)
+
+      assert Map.delete(user2_article, "favoritesCount") ==
+               Map.delete(user1_article, "favoritesCount")
+
+      assert user2_article["favoritesCount"] == 0
+    end
+
+    test "returns 401 and renders errors when bearer token is not sent", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      unfavorite_article_conn =
+        conn
+        |> delete(Routes.article_path(conn, :unfavorite_article, article.slug))
+
+      assert json_response(unfavorite_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when author is not found", %{
+      conn: conn
+    } do
+      article = insert(:article)
+
+      author_id = Faker.UUID.v4()
+
+      unfavorite_article_conn =
+        conn
+        |> secure_conn(author_id)
+        |> delete(Routes.article_path(conn, :unfavorite_article, article.slug))
+
+      assert json_response(unfavorite_article_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
     end
   end
 end
