@@ -9,10 +9,12 @@ defmodule RealWorldWeb.UserController do
 
   def register_user(
         conn,
-        %{"user" => %{"email" => email, "username" => username, "password" => password}}
+        %{
+          "user" => register_user_params
+        }
       ) do
     with {:ok, %User{} = user} <-
-           Users.create_user(%{email: email, username: username, password: password}) do
+           Users.create_user(register_user_params) do
       {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
 
       conn

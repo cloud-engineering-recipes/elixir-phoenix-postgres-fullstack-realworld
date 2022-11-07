@@ -15,8 +15,6 @@ defmodule RealWorld.Users.User do
     field :bio, :string
     field :image, :string
 
-    has_many(:articles, RealWorld.Articles.Article, foreign_key: :author_id)
-
     timestamps()
   end
 

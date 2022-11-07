@@ -58,6 +58,7 @@ defmodule RealWorldWeb.Router do
     get "/profiles/:username", ProfileController, :get_profile
 
     get "/articles/:slug", ArticleController, :get_article
+    get "/articles", ArticleController, :list_articles
   end
 
   # Enables LiveDashboard only for development

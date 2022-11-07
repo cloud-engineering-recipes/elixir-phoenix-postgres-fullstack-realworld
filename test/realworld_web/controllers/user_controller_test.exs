@@ -5,7 +5,7 @@ defmodule RealWorldWeb.UserControllerTest do
   import RealWorld.TestUtils
 
   setup %{conn: conn} do
-    {:ok, conn: put_req_header(conn, "accept", "application/json"), user: insert(:user)}
+    {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
   describe "register user" do
@@ -44,7 +44,9 @@ defmodule RealWorldWeb.UserControllerTest do
   end
 
   describe "login" do
-    test "returns 200 and renders an user", %{conn: conn, user: user} do
+    test "returns 200 and renders an user", %{conn: conn} do
+      user = insert(:user)
+
       login_params = %{
         email: user.email,
         password: user.password
@@ -79,7 +81,9 @@ defmodule RealWorldWeb.UserControllerTest do
       assert json_response(login_conn, 401)["errors"]["body"] == ["Unauthorized"]
     end
 
-    test "returns 401 and renders errors when password doesn't match", %{conn: conn, user: user} do
+    test "returns 401 and renders errors when password doesn't match", %{conn: conn} do
+      user = insert(:user)
+
       login_params = %{
         email: user.email,
         password: List.to_string(Faker.Lorem.characters())
@@ -94,7 +98,9 @@ defmodule RealWorldWeb.UserControllerTest do
   end
 
   describe "get current user" do
-    test "returns 200 and renders the user", %{conn: conn, user: user} do
+    test "returns 200 and renders the user", %{conn: conn} do
+      user = insert(:user)
+
       get_current_user_conn =
         conn
         |> secure_conn(user.id)
@@ -129,7 +135,9 @@ defmodule RealWorldWeb.UserControllerTest do
   end
 
   describe "update user" do
-    test "returns 200 and renders the user", %{conn: conn, user: user} do
+    test "returns 200 and renders the user", %{conn: conn} do
+      user = insert(:user)
+
       update_user_params = %{
         email: Faker.Internet.email(),
         username: Faker.Internet.user_name(),

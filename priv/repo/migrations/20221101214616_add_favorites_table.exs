@@ -4,8 +4,8 @@ defmodule RealWorld.Repo.Migrations.AddFavoritesTable do
   def change do
     create table("favorites", primary_key: false) do
       add :id, :uuid, primary_key: true
-      add :user_id, references("users", type: :uuid), null: false
-      add :article_id, references("articles", type: :uuid), null: false
+      add :user_id, references("users", type: :uuid)
+      add :article_id, references("articles", type: :uuid)
 
       timestamps(type: :utc_datetime, updated_at: false)
     end

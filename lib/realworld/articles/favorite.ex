@@ -5,11 +5,13 @@ defmodule RealWorld.Articles.Favorite do
 
   use Ecto.Schema
   import Ecto.Changeset
+  alias RealWorld.Articles.Article
+  alias RealWorld.Users.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "favorites" do
-    field :user_id, :binary_id
-    field :article_id, :binary_id
+    belongs_to(:user, User, type: :binary_id)
+    belongs_to(:article, Article, type: :binary_id)
 
     timestamps(updated_at: false)
   end

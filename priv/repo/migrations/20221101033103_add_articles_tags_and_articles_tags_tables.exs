@@ -9,12 +9,25 @@ defmodule RealWorld.Repo.Migrations.AddArticlesTable do
       add :title, :string, null: false
       add :description, :text, null: false
       add :body, :text, null: false
-      add :tag_list, {:array, :string}
+      add :tags, {:array, :string}
 
       timestamps(type: :utc_datetime)
     end
 
     create unique_index("articles", [:slug])
-    execute("CREATE INDEX article_tag_list_index ON articles USING GIN(tag_list)")
+
+    create table("tags", primary_key: false) do
+      add :id, :uuid, primary_key: true
+      add :name, :string, null: false
+
+      timestamps(type: :utc_datetime)
+    end
+
+    create unique_index("tags", [:name])
+
+    create table("articles_tags", primary_key: false) do
+      add :article_id, references("articles", type: :uuid)
+      add :tag_id, references("tags", type: :uuid)
+    end
   end
 end

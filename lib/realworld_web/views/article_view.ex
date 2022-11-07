@@ -2,46 +2,35 @@ defmodule RealWorldWeb.ArticleView do
   use RealWorldWeb, :view
   alias RealWorldWeb.ArticleView
 
-  def render("show.json", %{
-        article: article,
-        is_favorited: is_favorited,
-        favorites_count: favorites_count,
-        author: author,
-        is_following_author: is_following_author
-      }) do
+  def render("index.json", %{articles: articles}) do
     %{
-      article:
-        render_one(article, ArticleView, "article.json",
-          is_favorited: is_favorited,
-          favorites_count: favorites_count,
-          author: author,
-          is_following_author: is_following_author
-        )
+      articles: render_many(articles, ArticleView, "article.json"),
+      articlesCount: length(articles)
     }
   end
 
-  def render("article.json", %{
-        article: article,
-        is_favorited: is_favorited,
-        favorites_count: favorites_count,
-        author: author,
-        is_following_author: is_following_author
-      }) do
+  def render("show.json", %{article: article}) do
+    %{
+      article: render_one(article, ArticleView, "article.json")
+    }
+  end
+
+  def render("article.json", %{article: article}) do
     %{
       slug: article.slug,
       title: article.title,
       description: article.description,
       body: article.body,
-      tagList: article.tag_list,
+      tagList: article.tags |> Enum.map(& &1.name),
       createdAt: Date.to_iso8601(article.inserted_at),
       updatedAt: Date.to_iso8601(article.updated_at),
-      favorited: is_favorited,
-      favoritesCount: favorites_count,
+      favorited: article.is_favorited,
+      favoritesCount: article.favorites_count,
       author: %{
-        username: author.username,
-        bio: author.bio,
-        image: author.image,
-        following: is_following_author
+        username: article.author.username,
+        bio: article.author.bio,
+        image: article.author.image,
+        following: article.is_following_author
       }
     }
   end
