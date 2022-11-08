@@ -210,8 +210,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["description"] == article.description
       assert user1_article["body"] == article.body
       assert user1_article["tagList"] == article.tags
-      assert user1_article["createdAt"] != nil
-      assert user1_article["updatedAt"] != nil
+      assert {:ok, _} = Date.from_iso8601(user1_article["createdAt"])
+      assert {:ok, _} = Date.from_iso8601(user1_article["updatedAt"])
       assert !user1_article["favorited"]
       assert user1_article["favoritesCount"] == 1
 

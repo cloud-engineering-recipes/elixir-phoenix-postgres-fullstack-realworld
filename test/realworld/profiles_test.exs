@@ -21,7 +21,7 @@ defmodule RealWorld.ProfilesTest do
       follower_id = Faker.UUID.v4()
       followed = insert(:user)
 
-      assert {:not_found, "User #{follower_id} not found"} ==
+      assert {:not_found, "user #{follower_id} not found"} ==
                Profiles.follow_user(follower_id, followed.id)
     end
 
@@ -29,7 +29,7 @@ defmodule RealWorld.ProfilesTest do
       follower = insert(:user)
       followed_id = Faker.UUID.v4()
 
-      assert {:not_found, "User #{followed_id} not found"} ==
+      assert {:not_found, "user #{followed_id} not found"} ==
                Profiles.follow_user(follower.id, followed_id)
     end
   end
@@ -73,7 +73,7 @@ defmodule RealWorld.ProfilesTest do
       follower_id = Faker.UUID.v4()
       followed = insert(:user)
 
-      assert {:not_found, "User #{follower_id} not found"} ==
+      assert {:not_found, "user #{follower_id} not found"} ==
                Profiles.unfollow_user(
                  follower_id,
                  followed.id
@@ -84,7 +84,7 @@ defmodule RealWorld.ProfilesTest do
       follower = insert(:user)
       followed_id = Faker.UUID.v4()
 
-      assert {:not_found, "User #{followed_id} not found"} ==
+      assert {:not_found, "user #{followed_id} not found"} ==
                Profiles.unfollow_user(follower.id, followed_id)
     end
   end

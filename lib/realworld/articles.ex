@@ -7,7 +7,7 @@ defmodule RealWorld.Articles do
 
   import Ecto.Query
 
-  alias RealWorld.Articles.{Article, Favorite, Tag}
+  alias RealWorld.Articles.{Article, Comment, Favorite, Tag}
   alias RealWorld.Repo
   alias RealWorld.Users
 
@@ -23,14 +23,14 @@ defmodule RealWorld.Articles do
 
   def get_article_by_id(article_id) do
     case Repo.get(Article, article_id) |> Repo.preload([:tags]) do
-      nil -> {:not_found, "Article #{article_id} not found"}
+      nil -> {:not_found, "article #{article_id} not found"}
       article -> {:ok, article}
     end
   end
 
   def get_article_by_slug(slug) do
     case Repo.get_by(Article, slug: slug) |> Repo.preload([:tags]) do
-      nil -> {:not_found, "Slug #{slug} not found"}
+      nil -> {:not_found, "slug #{slug} not found"}
       article -> {:ok, article}
     end
   end
@@ -151,6 +151,54 @@ defmodule RealWorld.Articles do
            |> order_by(asc: :name)
            |> Repo.all() do
       {:ok, tags}
+    end
+  end
+
+  def add_comment(attrs) when is_map_key(attrs, :author_id) and is_map_key(attrs, :article_id) do
+    with {:ok, _} <- Users.get_user_by_id(attrs.author_id),
+         {:ok, _} <- get_article_by_id(attrs.article_id) do
+      %Comment{}
+      |> Comment.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  def get_comment_by_id(comment_id) do
+    case Repo.get(Comment, comment_id) do
+      nil -> {:not_found, "comment #{comment_id} not found"}
+      comment -> {:ok, comment}
+    end
+  end
+
+  def list_comments(attrs \\ %{}) do
+    with comments <-
+           Comment
+           |> where(^filter_comments_where(attrs))
+           |> order_by(^filter_comments_order_by(attrs[:order_by]))
+           |> Repo.all() do
+      {:ok, comments}
+    end
+  end
+
+  defp filter_comments_where(attrs) do
+    Enum.reduce(attrs, dynamic(true), fn
+      {:article_id, value}, dynamic ->
+        dynamic([c], ^dynamic and c.article_id == ^value)
+
+      {_, _}, dynamic ->
+        # Not a where parameter
+        dynamic
+    end)
+  end
+
+  defp filter_comments_order_by(_) do
+    [desc: :inserted_at]
+  end
+
+  def delete_comment(comment_id) do
+    with {:ok, comment} <- get_comment_by_id(comment_id),
+         {:ok, _} <- comment |> Repo.delete() do
+      {:ok, nil}
     end
   end
 end

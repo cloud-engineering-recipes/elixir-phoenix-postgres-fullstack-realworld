@@ -17,21 +17,21 @@ defmodule RealWorld.Users do
 
   def get_user_by_id(user_id) do
     case Repo.get(User, user_id) do
-      nil -> {:not_found, "User #{user_id} not found"}
+      nil -> {:not_found, "user #{user_id} not found"}
       user -> {:ok, user}
     end
   end
 
   def get_user_by_email(email) do
     case Repo.get_by(User, email: email) do
-      nil -> {:not_found, "Email #{email} not found"}
+      nil -> {:not_found, "email #{email} not found"}
       user -> {:ok, user}
     end
   end
 
   def get_user_by_username(username) do
     case Repo.get_by(User, username: username) do
-      nil -> {:not_found, "Username #{username} not found"}
+      nil -> {:not_found, "username #{username} not found"}
       user -> {:ok, user}
     end
   end
