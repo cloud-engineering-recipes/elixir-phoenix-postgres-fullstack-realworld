@@ -79,6 +79,9 @@ defmodule RealWorldWeb.ArticleController do
     end
   end
 
+  # credo:disable-for-next-line
+  # TODO(Marcus): Refactor to reduce the function's complexity
+  # credo:disable-for-next-line
   def list_articles(conn, params) do
     list_articles_filters = %{}
 
@@ -91,8 +94,13 @@ defmodule RealWorldWeb.ArticleController do
 
     list_articles_filters =
       if author_username = params["author"] do
-        with {:ok, author} <- Users.get_user_by_username(author_username) do
-          Map.put(list_articles_filters, :author_id, author.id)
+        case Users.get_user_by_username(author_username) do
+          {:ok, author} ->
+            Map.put(list_articles_filters, :author_id, author.id)
+
+          {:not_found, error_message} ->
+            Logger.error(error_message)
+            list_articles_filters
         end
       else
         list_articles_filters
@@ -100,8 +108,13 @@ defmodule RealWorldWeb.ArticleController do
 
     list_articles_filters =
       if favorited_by_username = params["favorited"] do
-        with {:ok, favorited_by} <- Users.get_user_by_username(favorited_by_username) do
-          Map.put(list_articles_filters, :favorited_by, favorited_by.id)
+        case Users.get_user_by_username(favorited_by_username) do
+          {:ok, favorited_by} ->
+            Map.put(list_articles_filters, :favorited_by, favorited_by.id)
+
+          {:not_found, error_message} ->
+            Logger.error(error_message)
+            list_articles_filters
         end
       else
         list_articles_filters
