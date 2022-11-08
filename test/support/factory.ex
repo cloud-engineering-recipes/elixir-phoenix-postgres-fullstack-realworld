@@ -70,7 +70,7 @@ defmodule RealWorld.Factory do
       if author = attrs[:author] do
         author
       else
-        insert(:author)
+        insert(:user)
       end
 
     article =

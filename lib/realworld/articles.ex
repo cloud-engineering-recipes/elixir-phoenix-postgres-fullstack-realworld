@@ -187,4 +187,16 @@ defmodule RealWorld.Articles do
   defp filter_comments_order_by(_) do
     [desc: :inserted_at]
   end
+
+  def delete_comment(comment_id) do
+    case Repo.get(Comment, comment_id) do
+      nil ->
+        {:not_found, "comment #{comment_id} not found"}
+
+      comment ->
+        with {:ok, _} <- comment |> Repo.delete() do
+          {:ok, nil}
+        end
+    end
+  end
 end

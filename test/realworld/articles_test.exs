@@ -582,4 +582,22 @@ defmodule RealWorld.ArticlesTest do
       assert error_message == "article #{add_comment_attrs.article_id} not found"
     end
   end
+
+  describe "delete_comment/1" do
+    test "deletes a comment" do
+      comment1 = insert(:comment)
+      comment2 = insert(:comment)
+
+      assert {:ok, nil} = Articles.delete_comment(comment1.id)
+      assert {:ok, comments} = Articles.list_comments()
+      assert comments == [comment2]
+    end
+
+    test "returns :not_found the comment is not found" do
+      comment_id = Faker.UUID.v4()
+
+      assert {:not_found, error_message} = Articles.delete_comment(comment_id)
+      assert error_message == "comment #{comment_id} not found"
+    end
+  end
 end
