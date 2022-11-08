@@ -176,6 +176,45 @@ defmodule RealWorldWeb.ArticleController do
     end
   end
 
+  def feed_articles(conn, params) do
+    user = conn.private.guardian_default_resource
+
+    get_feed_attrs = %{}
+
+    get_feed_attrs =
+      if limit = params["limit"] do
+        Map.put(get_feed_attrs, :limit, limit)
+      else
+        get_feed_attrs
+      end
+
+    get_feed_attrs =
+      if offset = params["offset"] do
+        Map.put(get_feed_attrs, :offset, offset)
+      else
+        get_feed_attrs
+      end
+
+    with {:ok, articles} <- Articles.get_feed(user.id, get_feed_attrs) do
+      articles =
+        articles
+        |> Enum.map(fn article ->
+          with {:ok, author} <- Users.get_user_by_id(article.author_id),
+               {:ok, favorites_count} <- Articles.get_favorites_count(article.id),
+               {:ok, is_favorited} <- Articles.is_favorited?(user.id, article.id),
+               {:ok, is_following_author} <- Profiles.is_following?(user.id, article.author_id) do
+            article
+            |> Map.put(:author, author)
+            |> Map.put(:favorites_count, favorites_count)
+            |> Map.put(:is_favorited, is_favorited)
+            |> Map.put(:is_following_author, is_following_author)
+          end
+        end)
+
+      render(conn, "index.json", articles: articles)
+    end
+  end
+
   def update_article(conn, %{
         "slug" => slug,
         "article" => update_article_params

@@ -49,6 +49,7 @@ defmodule RealWorldWeb.Router do
     post "/profiles/:username/follow", ProfileController, :follow_user
     delete "/profiles/:username/follow", ProfileController, :unfollow_user
 
+    get "/articles/feed", ArticleController, :feed_articles
     post "/articles", ArticleController, :create_article
     post "/articles/:slug/comments", CommentController, :add_comment
     post "/articles/:slug/favorite", ArticleController, :favorite_article
