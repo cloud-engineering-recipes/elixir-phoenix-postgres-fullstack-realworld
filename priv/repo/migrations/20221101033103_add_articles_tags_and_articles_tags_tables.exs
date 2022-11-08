@@ -29,5 +29,7 @@ defmodule RealWorld.Repo.Migrations.AddArticlesTable do
       add :article_id, references("articles", type: :uuid)
       add :tag_id, references("tags", type: :uuid)
     end
+
+    create unique_index("articles_tags", [:article_id, :tag_id])
   end
 end

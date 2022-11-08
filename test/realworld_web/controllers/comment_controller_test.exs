@@ -29,8 +29,8 @@ defmodule RealWorldWeb.CommentControllerTest do
 
       assert %{"comment" => comment} = json_response(create_comment_conn, 201)
       assert comment["id"] != nil
-      assert {:ok, _} = Date.from_iso8601(comment["createdAt"])
-      assert {:ok, _} = Date.from_iso8601(comment["updatedAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(comment["createdAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(comment["updatedAt"])
       assert comment["body"] == create_comment_params.body
 
       assert comment["author"] == %{
@@ -163,8 +163,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment0 = Enum.at(expected_comments, 0)
 
       assert comment0["id"] == expected_comment0.id
-      assert comment0["createdAt"] == Date.to_iso8601(expected_comment0.inserted_at)
-      assert comment0["updatedAt"] == Date.to_iso8601(expected_comment0.updated_at)
+      assert comment0["createdAt"] == DateTime.to_iso8601(expected_comment0.inserted_at)
+      assert comment0["updatedAt"] == DateTime.to_iso8601(expected_comment0.updated_at)
       assert comment0["body"] == expected_comment0.body
 
       assert comment0["author"] == %{
@@ -178,8 +178,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment1 = Enum.at(expected_comments, 1)
 
       assert comment1["id"] == expected_comment1.id
-      assert comment1["createdAt"] == Date.to_iso8601(expected_comment1.inserted_at)
-      assert comment1["updatedAt"] == Date.to_iso8601(expected_comment1.updated_at)
+      assert comment1["createdAt"] == DateTime.to_iso8601(expected_comment1.inserted_at)
+      assert comment1["updatedAt"] == DateTime.to_iso8601(expected_comment1.updated_at)
       assert comment1["body"] == expected_comment1.body
 
       assert comment1["author"] == %{
@@ -193,8 +193,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment2 = Enum.at(expected_comments, 2)
 
       assert comment2["id"] == expected_comment2.id
-      assert comment2["createdAt"] == Date.to_iso8601(expected_comment2.inserted_at)
-      assert comment2["updatedAt"] == Date.to_iso8601(expected_comment2.updated_at)
+      assert comment2["createdAt"] == DateTime.to_iso8601(expected_comment2.inserted_at)
+      assert comment2["updatedAt"] == DateTime.to_iso8601(expected_comment2.updated_at)
       assert comment2["body"] == expected_comment2.body
 
       assert comment2["author"] == %{
@@ -248,8 +248,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment0 = Enum.at(expected_comments, 0)
 
       assert comment0["id"] == expected_comment0.id
-      assert comment0["createdAt"] == Date.to_iso8601(expected_comment0.inserted_at)
-      assert comment0["updatedAt"] == Date.to_iso8601(expected_comment0.updated_at)
+      assert comment0["createdAt"] == DateTime.to_iso8601(expected_comment0.inserted_at)
+      assert comment0["updatedAt"] == DateTime.to_iso8601(expected_comment0.updated_at)
       assert comment0["body"] == expected_comment0.body
 
       assert comment0["author"] == %{
@@ -263,8 +263,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment1 = Enum.at(expected_comments, 1)
 
       assert comment1["id"] == expected_comment1.id
-      assert comment1["createdAt"] == Date.to_iso8601(expected_comment1.inserted_at)
-      assert comment1["updatedAt"] == Date.to_iso8601(expected_comment1.updated_at)
+      assert comment1["createdAt"] == DateTime.to_iso8601(expected_comment1.inserted_at)
+      assert comment1["updatedAt"] == DateTime.to_iso8601(expected_comment1.updated_at)
       assert comment1["body"] == expected_comment1.body
 
       assert comment1["author"] == %{
@@ -278,8 +278,8 @@ defmodule RealWorldWeb.CommentControllerTest do
       expected_comment2 = Enum.at(expected_comments, 2)
 
       assert comment2["id"] == expected_comment2.id
-      assert comment2["createdAt"] == Date.to_iso8601(expected_comment2.inserted_at)
-      assert comment2["updatedAt"] == Date.to_iso8601(expected_comment2.updated_at)
+      assert comment2["createdAt"] == DateTime.to_iso8601(expected_comment2.inserted_at)
+      assert comment2["updatedAt"] == DateTime.to_iso8601(expected_comment2.updated_at)
       assert comment2["body"] == expected_comment2.body
 
       assert comment2["author"] == %{

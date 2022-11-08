@@ -9,6 +9,7 @@ defmodule RealWorld.Articles.Favorite do
   alias RealWorld.Users.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts [type: :utc_datetime]
   schema "favorites" do
     belongs_to(:user, User, type: :binary_id)
     belongs_to(:article, Article, type: :binary_id)

@@ -15,7 +15,7 @@ defmodule RealWorldWeb.UserController do
       ) do
     with {:ok, %User{} = user} <-
            Users.create_user(register_user_params) do
-      {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+      {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{}, token_type: :token)
 
       conn
       |> put_status(:created)
@@ -32,7 +32,7 @@ defmodule RealWorldWeb.UserController do
       {:ok, true} ->
         {:ok, user} = Users.get_user_by_email(email)
 
-        {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{})
+        {:ok, token, _} = user |> RealWorldWeb.Guardian.encode_and_sign(%{}, token_type: :token)
 
         render(conn, "show.json", %{user: user, token: token})
 

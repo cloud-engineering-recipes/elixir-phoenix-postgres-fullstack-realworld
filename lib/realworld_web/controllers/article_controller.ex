@@ -79,6 +79,9 @@ defmodule RealWorldWeb.ArticleController do
     end
   end
 
+  # credo:disable-for-next-line
+  # TODO(Marcus): Refactor to reduce the function's complexity
+  # credo:disable-for-next-line
   def list_articles(conn, params) do
     list_articles_filters = %{}
 
@@ -91,8 +94,13 @@ defmodule RealWorldWeb.ArticleController do
 
     list_articles_filters =
       if author_username = params["author"] do
-        with {:ok, author} <- Users.get_user_by_username(author_username) do
-          Map.put(list_articles_filters, :author_id, author.id)
+        case Users.get_user_by_username(author_username) do
+          {:ok, author} ->
+            Map.put(list_articles_filters, :author_id, author.id)
+
+          {:not_found, error_message} ->
+            Logger.error(error_message)
+            list_articles_filters
         end
       else
         list_articles_filters
@@ -100,8 +108,13 @@ defmodule RealWorldWeb.ArticleController do
 
     list_articles_filters =
       if favorited_by_username = params["favorited"] do
-        with {:ok, favorited_by} <- Users.get_user_by_username(favorited_by_username) do
-          Map.put(list_articles_filters, :favorited_by, favorited_by.id)
+        case Users.get_user_by_username(favorited_by_username) do
+          {:ok, favorited_by} ->
+            Map.put(list_articles_filters, :favorited_by, favorited_by.id)
+
+          {:not_found, error_message} ->
+            Logger.error(error_message)
+            list_articles_filters
         end
       else
         list_articles_filters
@@ -158,6 +171,45 @@ defmodule RealWorldWeb.ArticleController do
           |> Enum.map(&Map.put(&1, :is_favorited, false))
           |> Enum.map(&Map.put(&1, :is_following_author, false))
         end
+
+      render(conn, "index.json", articles: articles)
+    end
+  end
+
+  def feed_articles(conn, params) do
+    user = conn.private.guardian_default_resource
+
+    get_feed_attrs = %{}
+
+    get_feed_attrs =
+      if limit = params["limit"] do
+        Map.put(get_feed_attrs, :limit, limit)
+      else
+        get_feed_attrs
+      end
+
+    get_feed_attrs =
+      if offset = params["offset"] do
+        Map.put(get_feed_attrs, :offset, offset)
+      else
+        get_feed_attrs
+      end
+
+    with {:ok, articles} <- Articles.get_feed(user.id, get_feed_attrs) do
+      articles =
+        articles
+        |> Enum.map(fn article ->
+          with {:ok, author} <- Users.get_user_by_id(article.author_id),
+               {:ok, favorites_count} <- Articles.get_favorites_count(article.id),
+               {:ok, is_favorited} <- Articles.is_favorited?(user.id, article.id),
+               {:ok, is_following_author} <- Profiles.is_following?(user.id, article.author_id) do
+            article
+            |> Map.put(:author, author)
+            |> Map.put(:favorites_count, favorites_count)
+            |> Map.put(:is_favorited, is_favorited)
+            |> Map.put(:is_following_author, is_following_author)
+          end
+        end)
 
       render(conn, "index.json", articles: articles)
     end
@@ -234,7 +286,7 @@ defmodule RealWorldWeb.ArticleController do
       render(conn, "show.json", %{
         article:
           article
-          |> Map.put(:is_favorited, true)
+          |> Map.put(:is_favorited, false)
           |> Map.put(:favorites_count, favorites_count)
           |> Map.put(:author, author)
           |> Map.put(:is_following_author, is_following_author)

@@ -5,6 +5,8 @@ defmodule RealWorld.Profiles do
 
   require Logger
 
+  import Ecto.Query
+
   alias RealWorld.Profiles.Follow
   alias RealWorld.Repo
   alias RealWorld.Users
@@ -30,6 +32,18 @@ defmodule RealWorld.Profiles do
       end
 
       {:ok, nil}
+    end
+  end
+
+  def list_followed_users(follower_id) do
+    with {:ok, follower} <- Users.get_user_by_id(follower_id),
+         followed_users <-
+           from(f in Follow,
+             select: f.followed_id,
+             where: f.follower_id == ^follower.id
+           )
+           |> Repo.all() do
+      {:ok, followed_users}
     end
   end
 

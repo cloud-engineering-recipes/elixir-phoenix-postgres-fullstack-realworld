@@ -9,6 +9,7 @@ defmodule RealWorld.Articles.Comment do
   alias RealWorld.Users.User
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts [type: :utc_datetime]
   schema "comments" do
     field :body, :string
 

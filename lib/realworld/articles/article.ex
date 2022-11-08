@@ -9,6 +9,7 @@ defmodule RealWorld.Articles.Article do
   alias RealWorld.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts [type: :utc_datetime]
   schema "articles" do
     field :author_id, :binary_id
     field :slug, :string
@@ -18,7 +19,9 @@ defmodule RealWorld.Articles.Article do
 
     many_to_many :tags, Tag,
       join_through: "articles_tags",
-      on_replace: :delete
+      on_replace: :delete,
+      unique: true,
+      preload_order: [asc: :name]
 
     has_many(:favorites, Favorite)
     has_many(:comments, Comment)
@@ -55,6 +58,7 @@ defmodule RealWorld.Articles.Article do
     |> Enum.map(&format_tag_name(&1))
     |> Enum.filter(&(&1 != nil))
     |> Enum.dedup()
+    |> Enum.sort()
     |> Enum.map(&get_or_insert_tag(&1))
   end
 

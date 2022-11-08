@@ -8,8 +8,7 @@ defmodule RealWorldWeb.AuthAccessPipeline do
     module: RealWorldWeb.Guardian,
     error_handler: RealWorldWeb.AuthErrorHandler
 
-  plug Guardian.Plug.VerifySession, claims: %{"typ" => "access"}
-  plug Guardian.Plug.VerifyHeader, claims: %{"typ" => "access"}
+  plug Guardian.Plug.VerifyHeader, scheme: "Token"
   plug Guardian.Plug.EnsureAuthenticated
   plug Guardian.Plug.LoadResource
 end

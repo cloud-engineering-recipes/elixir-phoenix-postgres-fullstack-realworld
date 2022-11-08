@@ -9,7 +9,7 @@ defmodule RealWorld.Articles do
 
   alias RealWorld.Articles.{Article, Comment, Favorite, Tag}
   alias RealWorld.Repo
-  alias RealWorld.Users
+  alias RealWorld.{Profiles, Users}
 
   def create_article(attrs) when is_map_key(attrs, :author_id) do
     with {:ok, _} <- Users.get_user_by_id(attrs.author_id),
@@ -86,6 +86,39 @@ defmodule RealWorld.Articles do
 
   defp filter_articles_order_by(_) do
     [desc: :inserted_at]
+  end
+
+  def get_feed(user_id, attrs \\ %{}) do
+    with {:ok, _} <- Users.get_user_by_id(user_id),
+         {:ok, followed_users} <- Profiles.list_followed_users(user_id) do
+      query =
+        from a in Article,
+          where: a.author_id in ^followed_users,
+          order_by: [desc: a.inserted_at]
+
+      query =
+        if limit = attrs[:limit] || attrs["limit"] do
+          query
+          |> limit(^limit)
+        else
+          query
+        end
+
+      query =
+        if offset = attrs[:offset] || attrs["offset"] do
+          query
+          |> offset(^offset)
+        else
+          query
+        end
+
+      with articles <-
+             query
+             |> Repo.all()
+             |> Repo.preload([:tags]) do
+        {:ok, articles}
+      end
+    end
   end
 
   def update_article(article_id, attrs) do

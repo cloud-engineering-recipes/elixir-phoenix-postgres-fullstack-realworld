@@ -22,8 +22,8 @@ defmodule RealWorldWeb.ArticleView do
       description: article.description,
       body: article.body,
       tagList: article.tags |> Enum.map(& &1.name),
-      createdAt: Date.to_iso8601(article.inserted_at),
-      updatedAt: Date.to_iso8601(article.updated_at),
+      createdAt: DateTime.to_iso8601(article.inserted_at),
+      updatedAt: DateTime.to_iso8601(article.updated_at),
       favorited: article.is_favorited,
       favoritesCount: article.favorites_count,
       author: %{

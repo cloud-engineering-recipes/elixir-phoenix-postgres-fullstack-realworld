@@ -39,14 +39,14 @@ defmodule RealWorld.ArticlesTest do
       assert article.body == create_article_attrs.body
 
       assert article.tags |> Enum.map(& &1.name) == [
+               "duplicated1",
                "lower1",
                "lower2",
-               "upper1",
-               "upper2",
                "mixed1",
                "mixed2",
                "mixed3",
-               "duplicated1"
+               "upper1",
+               "upper2"
              ]
 
       with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(article.id) do
@@ -122,11 +122,11 @@ defmodule RealWorld.ArticlesTest do
       assert updated_article.tags |> Enum.map(& &1.name) == [
                "lower1",
                "lower2",
-               "upper1",
-               "upper2",
                "mixed1",
                "mixed2",
-               "mixed3"
+               "mixed3",
+               "upper1",
+               "upper2"
              ]
 
       with {:ok, %Article{} = got_article} <- Articles.get_article_by_id(updated_article.id) do

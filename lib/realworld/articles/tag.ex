@@ -7,6 +7,7 @@ defmodule RealWorld.Articles.Tag do
   import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts [type: :utc_datetime]
   schema "tags" do
     field :name, :string
 
