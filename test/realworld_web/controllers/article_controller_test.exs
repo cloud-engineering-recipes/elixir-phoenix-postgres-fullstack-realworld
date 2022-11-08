@@ -32,8 +32,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert article["description"] == create_article_params.description
       assert article["body"] == create_article_params.body
       assert article["tagList"] == create_article_params.tagList |> Enum.sort()
-      assert {:ok, _} = Date.from_iso8601(article["createdAt"])
-      assert {:ok, _} = Date.from_iso8601(article["updatedAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(article["createdAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(article["updatedAt"])
       assert !article["favorited"]
       assert article["favoritesCount"] == 0
 
@@ -67,8 +67,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert article["description"] == create_article_params.description
       assert article["body"] == create_article_params.body
       assert article["tagList"] == []
-      assert {:ok, _} = Date.from_iso8601(article["createdAt"])
-      assert {:ok, _} = Date.from_iso8601(article["updatedAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(article["createdAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(article["updatedAt"])
       assert !article["favorited"]
       assert article["favoritesCount"] == 0
 
@@ -163,8 +163,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["description"] == article.description
       assert user1_article["body"] == article.body
       assert user1_article["tagList"] == article.tags |> Enum.sort()
-      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["createdAt"] == DateTime.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == DateTime.to_iso8601(article.updated_at)
       assert user1_article["favorited"]
       assert user1_article["favoritesCount"] == 2
 
@@ -210,8 +210,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["description"] == article.description
       assert user1_article["body"] == article.body
       assert user1_article["tagList"] == article.tags |> Enum.sort()
-      assert {:ok, _} = Date.from_iso8601(user1_article["createdAt"])
-      assert {:ok, _} = Date.from_iso8601(user1_article["updatedAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(user1_article["createdAt"])
+      assert {:ok, _, _} = DateTime.from_iso8601(user1_article["updatedAt"])
       assert !user1_article["favorited"]
       assert user1_article["favoritesCount"] == 1
 
@@ -427,8 +427,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
         assert article["description"] == expected_article.description
         assert article["body"] == expected_article.body
         assert article["tagList"] == expected_article.tags |> Enum.map(& &1.name) |> Enum.sort()
-        assert article["createdAt"] == Date.to_iso8601(expected_article.inserted_at)
-        assert article["updatedAt"] == Date.to_iso8601(expected_article.updated_at)
+        assert article["createdAt"] == DateTime.to_iso8601(expected_article.inserted_at)
+        assert article["updatedAt"] == DateTime.to_iso8601(expected_article.updated_at)
         assert article["favorited"]
         assert article["favoritesCount"] == 2
 
@@ -491,8 +491,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert updated_article["description"] == update_article_params.description
       assert updated_article["body"] == update_article_params.body
       assert updated_article["tagList"] == update_article_params.tagList |> Enum.sort()
-      assert updated_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert {:ok, _} = Date.from_iso8601(updated_article["updatedAt"])
+      assert updated_article["createdAt"] == DateTime.to_iso8601(article.inserted_at)
+      assert {:ok, _, _} = DateTime.from_iso8601(updated_article["updatedAt"])
       assert !updated_article["favorited"]
       assert updated_article["favoritesCount"] == 0
 
@@ -607,8 +607,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["description"] == article.description
       assert user1_article["body"] == article.body
       assert user1_article["tagList"] == article.tags |> Enum.sort()
-      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["createdAt"] == DateTime.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == DateTime.to_iso8601(article.updated_at)
       assert user1_article["favorited"]
       assert user1_article["favoritesCount"] == 1
 
@@ -698,8 +698,8 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["description"] == article.description
       assert user1_article["body"] == article.body
       assert user1_article["tagList"] == article.tags |> Enum.sort()
-      assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
-      assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
+      assert user1_article["createdAt"] == DateTime.to_iso8601(article.inserted_at)
+      assert user1_article["updatedAt"] == DateTime.to_iso8601(article.updated_at)
       assert !user1_article["favorited"]
       assert user1_article["favoritesCount"] == 1
 

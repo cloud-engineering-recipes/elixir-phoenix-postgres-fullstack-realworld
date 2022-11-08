@@ -15,8 +15,8 @@ defmodule RealWorldWeb.CommentView do
   def render("comment.json", %{comment: comment}) do
     %{
       id: comment.id,
-      createdAt: Date.to_iso8601(comment.inserted_at),
-      updatedAt: Date.to_iso8601(comment.updated_at),
+      createdAt: DateTime.to_iso8601(comment.inserted_at),
+      updatedAt: DateTime.to_iso8601(comment.updated_at),
       body: comment.body,
       author: %{
         username: comment.author.username,

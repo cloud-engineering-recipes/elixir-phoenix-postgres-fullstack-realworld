@@ -9,6 +9,7 @@ defmodule RealWorld.Articles.Article do
   alias RealWorld.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
+  @timestamps_opts [type: :utc_datetime]
   schema "articles" do
     field :author_id, :binary_id
     field :slug, :string
