@@ -234,7 +234,7 @@ defmodule RealWorldWeb.ArticleController do
       render(conn, "show.json", %{
         article:
           article
-          |> Map.put(:is_favorited, true)
+          |> Map.put(:is_favorited, false)
           |> Map.put(:favorites_count, favorites_count)
           |> Map.put(:author, author)
           |> Map.put(:is_following_author, is_following_author)

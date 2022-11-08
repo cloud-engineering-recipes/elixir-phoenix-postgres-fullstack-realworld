@@ -17,10 +17,10 @@ defmodule RealWorld.TestUtils do
 
   def secure_conn(conn, user_id) do
     {:ok, token, _} =
-      %User{id: user_id} |> RealWorldWeb.Guardian.encode_and_sign(%{}, token_type: :access)
+      %User{id: user_id} |> RealWorldWeb.Guardian.encode_and_sign(%{}, token_type: :token)
 
     conn
     |> put_req_header("accept", "application/json")
-    |> put_req_header("authorization", "Bearer #{token}")
+    |> put_req_header("authorization", "Token #{token}")
   end
 end

@@ -60,7 +60,7 @@ defmodule RealWorldWeb.UserControllerTest do
 
       get_current_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{logged_user["token"]}")
+        |> put_req_header("authorization", "Token #{logged_user["token"]}")
         |> get(Routes.user_path(conn, :get_current_user))
 
       assert %{"user" => found_user} = json_response(get_current_user_conn, 200)
@@ -155,7 +155,7 @@ defmodule RealWorldWeb.UserControllerTest do
 
       get_current_user_conn =
         conn
-        |> put_req_header("authorization", "Bearer #{updated_user["token"]}")
+        |> put_req_header("authorization", "Token #{updated_user["token"]}")
         |> get(Routes.user_path(conn, :get_current_user))
 
       assert %{"user" => found_user} = json_response(get_current_user_conn, 200)

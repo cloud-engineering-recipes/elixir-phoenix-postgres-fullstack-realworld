@@ -700,7 +700,7 @@ defmodule RealWorldWeb.ArticleControllerTest do
       assert user1_article["tagList"] == article.tags
       assert user1_article["createdAt"] == Date.to_iso8601(article.inserted_at)
       assert user1_article["updatedAt"] == Date.to_iso8601(article.updated_at)
-      assert user1_article["favorited"]
+      assert !user1_article["favorited"]
       assert user1_article["favoritesCount"] == 1
 
       assert user1_article["author"] == %{
