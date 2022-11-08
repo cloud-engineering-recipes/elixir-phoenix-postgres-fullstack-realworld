@@ -5,7 +5,7 @@ defmodule RealWorld.Articles.Article do
 
   use Ecto.Schema
   import Ecto.Changeset
-  alias RealWorld.Articles.{Favorite, Tag}
+  alias RealWorld.Articles.{Comment, Favorite, Tag}
   alias RealWorld.Repo
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -21,6 +21,7 @@ defmodule RealWorld.Articles.Article do
       on_replace: :delete
 
     has_many(:favorites, Favorite)
+    has_many(:comments, Comment)
 
     timestamps()
   end

@@ -19,22 +19,22 @@ defmodule RealWorld.Factory do
 
   def article_factory(attrs) do
     author =
-      if Map.has_key?(attrs, :author) do
-        attrs.author
+      if author = attrs[:author] do
+        author
       else
         insert(:user)
       end
 
     tags =
-      if Map.has_key?(attrs, :tags) do
-        attrs.tags
+      if tags = attrs[:tags] do
+        tags
       else
         []
       end
 
     inserted_at =
-      if Map.has_key?(attrs, :inserted_at) do
-        attrs.inserted_at
+      if inserted_at = attrs[:inserted_at] do
+        inserted_at
       else
         nil
       end
@@ -54,14 +54,43 @@ defmodule RealWorld.Factory do
 
   def tag_factory(attrs) do
     name =
-      if Map.has_key?(attrs, :name) do
-        attrs.name
+      if name = attrs[:name] do
+        name
       else
-        Faker.Lorem.word()
+        insert(:name)
       end
 
     %RealWorld.Articles.Tag{
       name: name
+    }
+  end
+
+  def comment_factory(attrs) do
+    user =
+      if user = attrs[:user] do
+        user
+      else
+        insert(:user)
+      end
+
+    article =
+      if article = attrs[:article] do
+        article
+      else
+        insert(:article)
+      end
+
+    body =
+      if body = attrs[:body] do
+        body
+      else
+        Faker.Lorem.paragraph()
+      end
+
+    %RealWorld.Articles.Comment{
+      user_id: user.id,
+      article_id: article.id,
+      body: body
     }
   end
 end

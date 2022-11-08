@@ -3,7 +3,7 @@ defmodule RealWorld.ArticlesTest do
 
   import RealWorld.Factory
   import RealWorld.TestUtils
-  alias RealWorld.{Articles, Articles.Article}
+  alias RealWorld.{Articles, Articles.Article, Articles.Comment}
 
   describe "create_article/1" do
     test "returns an article" do
@@ -63,7 +63,7 @@ defmodule RealWorld.ArticlesTest do
         tags: Faker.Lorem.words()
       }
 
-      assert {:not_found, "User #{create_article_attrs.author_id} not found"} ==
+      assert {:not_found, "user #{create_article_attrs.author_id} not found"} ==
                Articles.create_article(create_article_attrs)
     end
 
@@ -166,7 +166,7 @@ defmodule RealWorld.ArticlesTest do
         tags: Faker.Lorem.words()
       }
 
-      assert {:not_found, "Article #{article_id} not found"} ==
+      assert {:not_found, "article #{article_id} not found"} ==
                Articles.update_article(article_id, update_article_attrs)
     end
 
@@ -199,7 +199,7 @@ defmodule RealWorld.ArticlesTest do
     test "returns :not_found when the article is not found" do
       article_id = Faker.UUID.v4()
 
-      assert {:not_found, "Article #{article_id} not found"} ==
+      assert {:not_found, "article #{article_id} not found"} ==
                Articles.get_article_by_id(article_id)
     end
   end
@@ -215,7 +215,7 @@ defmodule RealWorld.ArticlesTest do
     test "returns :not_found when the article is not found" do
       slug = Slug.slugify(Faker.Lorem.sentence())
 
-      assert {:not_found, "Slug #{slug} not found"} ==
+      assert {:not_found, "slug #{slug} not found"} ==
                Articles.get_article_by_slug(slug)
     end
   end
@@ -425,7 +425,7 @@ defmodule RealWorld.ArticlesTest do
       user_id = Faker.UUID.v4()
       article = insert(:article)
 
-      assert {:not_found, "User #{user_id} not found"} ==
+      assert {:not_found, "user #{user_id} not found"} ==
                Articles.favorite_article(user_id, article.id)
     end
 
@@ -434,7 +434,7 @@ defmodule RealWorld.ArticlesTest do
 
       article_id = Faker.UUID.v4()
 
-      assert {:not_found, "Article #{article_id} not found"} ==
+      assert {:not_found, "article #{article_id} not found"} ==
                Articles.favorite_article(user.id, article_id)
     end
   end
@@ -457,7 +457,7 @@ defmodule RealWorld.ArticlesTest do
       user_id = Faker.UUID.v4()
       article = insert(:article)
 
-      assert {:not_found, "User #{user_id} not found"} ==
+      assert {:not_found, "user #{user_id} not found"} ==
                Articles.unfavorite_article(user_id, article.id)
     end
 
@@ -466,7 +466,7 @@ defmodule RealWorld.ArticlesTest do
 
       article_id = Faker.UUID.v4()
 
-      assert {:not_found, "Article #{article_id} not found"} ==
+      assert {:not_found, "article #{article_id} not found"} ==
                Articles.unfavorite_article(user.id, article_id)
     end
   end
@@ -504,7 +504,7 @@ defmodule RealWorld.ArticlesTest do
     test "returns :not_found when the article is not found" do
       article_id = Faker.UUID.v4()
 
-      assert {:not_found, "Article #{article_id} not found"} ==
+      assert {:not_found, "article #{article_id} not found"} ==
                Articles.get_favorites_count(article_id)
     end
   end
@@ -536,6 +536,50 @@ defmodule RealWorld.ArticlesTest do
     test "returns empty when no article has tags" do
       assert {:ok, tags} = Articles.list_tags()
       assert tags == []
+    end
+  end
+
+  describe "add_comment/1" do
+    test "returns a comment" do
+      user = insert(:user)
+      article = insert(:article)
+
+      add_comment_attrs = %{
+        user_id: user.id,
+        article_id: article.id,
+        body: Faker.Lorem.sentence()
+      }
+
+      assert {:ok, %Comment{} = comment} = Articles.add_comment(add_comment_attrs)
+      assert comment.user_id == user.id
+      assert comment.article_id == article.id
+      assert comment.body == add_comment_attrs.body
+    end
+
+    test "returns :not_found the user is not found" do
+      article = insert(:article)
+
+      add_comment_attrs = %{
+        user_id: Faker.UUID.v4(),
+        article_id: article.id,
+        body: Faker.Lorem.sentence()
+      }
+
+      assert {:not_found, error_message} = Articles.add_comment(add_comment_attrs)
+      assert error_message == "user #{add_comment_attrs.user_id} not found"
+    end
+
+    test "returns :not_found the article is not found" do
+      user = insert(:user)
+
+      add_comment_attrs = %{
+        user_id: user.id,
+        article_id: Faker.UUID.v4(),
+        body: Faker.Lorem.sentence()
+      }
+
+      assert {:not_found, error_message} = Articles.add_comment(add_comment_attrs)
+      assert error_message == "article #{add_comment_attrs.article_id} not found"
     end
   end
 end
