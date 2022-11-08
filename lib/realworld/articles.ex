@@ -167,6 +167,7 @@ defmodule RealWorld.Articles do
     with comments <-
            Comment
            |> where(^filter_comments_where(attrs))
+           |> order_by(^filter_comments_order_by(attrs[:order_by]))
            |> Repo.all() do
       {:ok, comments}
     end
@@ -181,5 +182,9 @@ defmodule RealWorld.Articles do
         # Not a where parameter
         dynamic
     end)
+  end
+
+  defp filter_comments_order_by(_) do
+    [desc: :inserted_at]
   end
 end

@@ -80,17 +80,18 @@ defmodule RealWorld.Factory do
         insert(:article)
       end
 
-    body =
-      if body = attrs[:body] do
-        body
+    inserted_at =
+      if inserted_at = attrs[:inserted_at] do
+        inserted_at
       else
-        Faker.Lorem.paragraph()
+        nil
       end
 
     %RealWorld.Articles.Comment{
       author_id: author.id,
       article_id: article.id,
-      body: body
+      body: Faker.Lorem.paragraph(),
+      inserted_at: inserted_at
     }
   end
 end
