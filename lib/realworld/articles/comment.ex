@@ -12,15 +12,15 @@ defmodule RealWorld.Articles.Comment do
   schema "comments" do
     field :body, :string
 
-    belongs_to(:user, User, type: :binary_id)
+    belongs_to(:author, User, type: :binary_id)
     belongs_to(:article, Article, type: :binary_id)
 
-    timestamps(updated_at: false)
+    timestamps()
   end
 
   def changeset(comment, attrs) do
     comment
-    |> cast(attrs, [:user_id, :article_id, :body])
-    |> validate_required([:user_id, :article_id, :body])
+    |> cast(attrs, [:author_id, :article_id, :body])
+    |> validate_required([:author_id, :article_id, :body])
   end
 end

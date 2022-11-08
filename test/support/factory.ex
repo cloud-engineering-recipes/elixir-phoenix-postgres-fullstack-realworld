@@ -66,11 +66,11 @@ defmodule RealWorld.Factory do
   end
 
   def comment_factory(attrs) do
-    user =
-      if user = attrs[:user] do
-        user
+    author =
+      if author = attrs[:author] do
+        author
       else
-        insert(:user)
+        insert(:author)
       end
 
     article =
@@ -88,7 +88,7 @@ defmodule RealWorld.Factory do
       end
 
     %RealWorld.Articles.Comment{
-      user_id: user.id,
+      author_id: author.id,
       article_id: article.id,
       body: body
     }

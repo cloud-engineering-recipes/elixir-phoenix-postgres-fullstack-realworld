@@ -34,8 +34,8 @@ defmodule RealWorldWeb.Router do
   scope "/api", RealWorldWeb do
     pipe_through :api
 
-    post "/users", UserController, :register_user
     post "/users/login", UserController, :login
+    post "/users", UserController, :register_user
 
     get "/tags", TagController, :get_tags
   end
@@ -50,6 +50,7 @@ defmodule RealWorldWeb.Router do
     delete "/profiles/:username/follow", ProfileController, :unfollow_user
 
     post "/articles", ArticleController, :create_article
+    post "/articles/:slug/comments", CommentController, :add_comment
     post "/articles/:slug/favorite", ArticleController, :favorite_article
     put "/articles/:slug", ArticleController, :update_article
     delete "/articles/:slug/favorite", ArticleController, :unfavorite_article
@@ -60,6 +61,7 @@ defmodule RealWorldWeb.Router do
 
     get "/profiles/:username", ProfileController, :get_profile
 
+    get "/articles/:slug/comments", CommentController, :get_article_comments
     get "/articles/:slug", ArticleController, :get_article
     get "/articles", ArticleController, :list_articles
   end

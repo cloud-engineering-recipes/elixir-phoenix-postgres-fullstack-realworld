@@ -541,39 +541,39 @@ defmodule RealWorld.ArticlesTest do
 
   describe "add_comment/1" do
     test "returns a comment" do
-      user = insert(:user)
+      author = insert(:user)
       article = insert(:article)
 
       add_comment_attrs = %{
-        user_id: user.id,
+        author_id: author.id,
         article_id: article.id,
         body: Faker.Lorem.sentence()
       }
 
       assert {:ok, %Comment{} = comment} = Articles.add_comment(add_comment_attrs)
-      assert comment.user_id == user.id
+      assert comment.author_id == author.id
       assert comment.article_id == article.id
       assert comment.body == add_comment_attrs.body
     end
 
-    test "returns :not_found the user is not found" do
+    test "returns :not_found the author is not found" do
       article = insert(:article)
 
       add_comment_attrs = %{
-        user_id: Faker.UUID.v4(),
+        author_id: Faker.UUID.v4(),
         article_id: article.id,
         body: Faker.Lorem.sentence()
       }
 
       assert {:not_found, error_message} = Articles.add_comment(add_comment_attrs)
-      assert error_message == "user #{add_comment_attrs.user_id} not found"
+      assert error_message == "user #{add_comment_attrs.author_id} not found"
     end
 
     test "returns :not_found the article is not found" do
-      user = insert(:user)
+      author = insert(:user)
 
       add_comment_attrs = %{
-        user_id: user.id,
+        author_id: author.id,
         article_id: Faker.UUID.v4(),
         body: Faker.Lorem.sentence()
       }

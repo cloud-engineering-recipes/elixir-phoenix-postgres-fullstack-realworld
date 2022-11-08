@@ -154,12 +154,32 @@ defmodule RealWorld.Articles do
     end
   end
 
-  def add_comment(attrs) when is_map_key(attrs, :user_id) and is_map_key(attrs, :article_id) do
-    with {:ok, _} <- Users.get_user_by_id(attrs.user_id),
+  def add_comment(attrs) when is_map_key(attrs, :author_id) and is_map_key(attrs, :article_id) do
+    with {:ok, _} <- Users.get_user_by_id(attrs.author_id),
          {:ok, _} <- get_article_by_id(attrs.article_id) do
       %Comment{}
       |> Comment.changeset(attrs)
       |> Repo.insert()
     end
+  end
+
+  def list_comments(attrs \\ %{}) do
+    with comments <-
+           Comment
+           |> where(^filter_comments_where(attrs))
+           |> Repo.all() do
+      {:ok, comments}
+    end
+  end
+
+  defp filter_comments_where(attrs) do
+    Enum.reduce(attrs, dynamic(true), fn
+      {:article_id, value}, dynamic ->
+        dynamic([c], ^dynamic and c.article_id == ^value)
+
+      {_, _}, dynamic ->
+        # Not a where parameter
+        dynamic
+    end)
   end
 end
