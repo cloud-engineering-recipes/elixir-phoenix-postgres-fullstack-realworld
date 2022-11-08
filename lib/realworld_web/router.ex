@@ -53,6 +53,7 @@ defmodule RealWorldWeb.Router do
     post "/articles/:slug/comments", CommentController, :add_comment
     post "/articles/:slug/favorite", ArticleController, :favorite_article
     put "/articles/:slug", ArticleController, :update_article
+    delete "/articles/:slug/comments/:id", CommentController, :delete_comment
     delete "/articles/:slug/favorite", ArticleController, :unfavorite_article
   end
 

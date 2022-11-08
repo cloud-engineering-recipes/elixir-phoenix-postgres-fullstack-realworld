@@ -51,4 +51,24 @@ defmodule RealWorldWeb.CommentController do
       render(conn, "index.json", %{comments: comments})
     end
   end
+
+  def delete_comment(conn, %{"slug" => _, "id" => comment_id}) do
+    author = conn.private.guardian_default_resource
+
+    with {:ok, comment} <- Articles.get_comment_by_id(comment_id) do
+      if comment.author_id == author.id do
+        with {:ok, _} <- Articles.delete_comment(comment_id) do
+          conn
+          |> put_status(:no_content)
+          |> json(%{})
+        end
+      else
+        Logger.error(
+          "User #{author.id} tried to update comment #{comment.id} from author #{comment.author_id}."
+        )
+
+        {:unauthorized, "Unauthorized"}
+      end
+    end
+  end
 end

@@ -556,7 +556,7 @@ defmodule RealWorld.ArticlesTest do
       assert comment.body == add_comment_attrs.body
     end
 
-    test "returns :not_found the author is not found" do
+    test "returns :not_found when the author is not found" do
       article = insert(:article)
 
       add_comment_attrs = %{
@@ -569,7 +569,7 @@ defmodule RealWorld.ArticlesTest do
       assert error_message == "user #{add_comment_attrs.author_id} not found"
     end
 
-    test "returns :not_found the article is not found" do
+    test "returns :not_found when the article is not found" do
       author = insert(:user)
 
       add_comment_attrs = %{
@@ -593,7 +593,7 @@ defmodule RealWorld.ArticlesTest do
       assert comments == [comment2]
     end
 
-    test "returns :not_found the comment is not found" do
+    test "returns :not_found when the comment is not found" do
       comment_id = Faker.UUID.v4()
 
       assert {:not_found, error_message} = Articles.delete_comment(comment_id)

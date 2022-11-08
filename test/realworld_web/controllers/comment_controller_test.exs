@@ -331,4 +331,96 @@ defmodule RealWorldWeb.CommentControllerTest do
              ]
     end
   end
+
+  describe "delete comment" do
+    test "returns 204", %{
+      conn: conn
+    } do
+      article = insert(:article)
+      comment_author = insert(:user)
+      comment = insert(:comment, author: comment_author, article: article)
+
+      delete_comment_conn =
+        conn
+        |> secure_conn(comment_author.id)
+        |> delete(Routes.comment_path(conn, :delete_comment, article.slug, comment.id))
+
+      assert %{} = json_response(delete_comment_conn, 204)
+
+      get_article_comments_conn =
+        conn
+        |> secure_conn(comment_author.id)
+        |> get(Routes.comment_path(conn, :get_article_comments, article.slug))
+
+      assert %{"comments" => comments} = json_response(get_article_comments_conn, 200)
+      assert Enum.empty?(comments)
+    end
+
+    test "returns 401 and renders errors when bearer token is not sent", %{
+      conn: conn
+    } do
+      article = insert(:article)
+      comment = insert(:comment, article: article)
+
+      delete_comment_conn =
+        conn
+        |> delete(Routes.comment_path(conn, :delete_comment, article.slug, comment.id))
+
+      assert json_response(delete_comment_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when author is not found", %{
+      conn: conn
+    } do
+      article = insert(:article)
+      comment_author_id = Faker.UUID.v4()
+      comment = insert(:comment, article: article)
+
+      delete_comment_conn =
+        conn
+        |> secure_conn(comment_author_id)
+        |> delete(Routes.comment_path(conn, :delete_comment, article.slug, comment.id))
+
+      assert json_response(delete_comment_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 401 and renders errors when the user is not the author of the comment", %{
+      conn: conn
+    } do
+      article = insert(:article)
+      comment_author = insert(:user)
+      comment = insert(:comment, author: comment_author, article: article)
+      another_user = insert(:user)
+
+      delete_comment_conn =
+        conn
+        |> secure_conn(another_user.id)
+        |> delete(Routes.comment_path(conn, :delete_comment, article.slug, comment.id))
+
+      assert json_response(delete_comment_conn, 401)["errors"]["body"] == [
+               "Unauthorized"
+             ]
+    end
+
+    test "returns 404 and renders errors when comment is not found", %{
+      conn: conn
+    } do
+      article = insert(:article)
+      comment_author = insert(:user)
+      comment_id = Faker.UUID.v4()
+
+      delete_comment_conn =
+        conn
+        |> secure_conn(comment_author.id)
+        |> delete(Routes.comment_path(conn, :delete_comment, article.slug, comment_id))
+
+      assert json_response(delete_comment_conn, 404)["errors"]["body"] == [
+               "comment #{comment_id} not found"
+             ]
+    end
+  end
 end

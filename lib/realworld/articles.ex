@@ -163,6 +163,13 @@ defmodule RealWorld.Articles do
     end
   end
 
+  def get_comment_by_id(comment_id) do
+    case Repo.get(Comment, comment_id) do
+      nil -> {:not_found, "comment #{comment_id} not found"}
+      comment -> {:ok, comment}
+    end
+  end
+
   def list_comments(attrs \\ %{}) do
     with comments <-
            Comment
@@ -189,14 +196,9 @@ defmodule RealWorld.Articles do
   end
 
   def delete_comment(comment_id) do
-    case Repo.get(Comment, comment_id) do
-      nil ->
-        {:not_found, "comment #{comment_id} not found"}
-
-      comment ->
-        with {:ok, _} <- comment |> Repo.delete() do
-          {:ok, nil}
-        end
+    with {:ok, comment} <- get_comment_by_id(comment_id),
+         {:ok, _} <- comment |> Repo.delete() do
+      {:ok, nil}
     end
   end
 end
